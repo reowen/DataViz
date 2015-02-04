@@ -7,13 +7,15 @@ shinyUI(fluidPage(
   
   mainPanel(
     fluidRow(
-       plotOutput("plotHistory")
+      h3("Coverage Trends"), 
+      plotOutput("plotHistory")
       ),
     
     br(), 
     br(),
     
     fluidRow(
+      h3("Country Summary Table"),
       tableOutput("tableHistory")
       ),  
     
@@ -21,6 +23,7 @@ shinyUI(fluidPage(
     br(),
     
     fluidRow(
+      h3("Program Coverage Distribution by Disease"),
       plotOutput("histograms")
       ), 
     
@@ -28,6 +31,7 @@ shinyUI(fluidPage(
     br(),
     
     fluidRow(
+      h3("Region-Level Program Coverage"),
       plotOutput("stackedBars")
       ), 
     
@@ -35,6 +39,7 @@ shinyUI(fluidPage(
     br(),
     
     fluidRow(
+      h4("Districts with Program Coverage Under 60%"),
       tableOutput("districtUnder60")
       ), 
     
@@ -42,6 +47,7 @@ shinyUI(fluidPage(
     br(),
     
     fluidRow(
+      h4("Districts with Program Coverage 60% - 80%"),
       tableOutput("district60to80")
     ),    
     
@@ -49,6 +55,7 @@ shinyUI(fluidPage(
     br(),
     
     fluidRow(
+      h4("Districts with Program Coverage 80% - 100%"),
       tableOutput("district80to100")
     ),    
     
@@ -56,6 +63,7 @@ shinyUI(fluidPage(
     br(),
     
     fluidRow(
+      h4("Districts with Program Coverage Over 100%"),
       tableOutput("district100plus")
     )  
   )

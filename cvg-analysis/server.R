@@ -1,12 +1,11 @@
 library(shiny)
 library(ggplot2)
-# library(gridExtra)
-library(xtable)
+library(grid)
+library(gridExtra)
 
 country <- read.csv("data/country.csv")
 region <- read.csv("data/region.csv")
 district <- read.csv("data/district.csv")
-source("helpers.R")
 
 shinyServer(function(input, output) {
   
@@ -88,14 +87,19 @@ shinyServer(function(input, output) {
                    selected = 2014)
     )
   })
+ 
   
   output$plotHistory <- renderPlot({
+    max_cvg <- max(country[(country$country_name %in% input$country & country$disease %in% input$disease), "median_cvg"], na.rm=TRUE)
+    
     ggplot(country[(country$country_name %in% input$country & country$disease %in% input$disease), ], 
            aes(x=fiscal_year, y=median_cvg, group=disease, color=disease, shape=disease)) + 
       geom_line() + 
       geom_point() + 
       scale_x_continuous(breaks = seq(min(country$fiscal_year, na.rm=TRUE), 
-                                        max(country$fiscal_year, na.rm=TRUE))) + 
+                                      max(country$fiscal_year, na.rm=TRUE))) + 
+      scale_y_continuous(breaks = round(seq(0, max_cvg, by=0.1), 1)) +
+      expand_limits(y=0) + 
       labs(title = paste('Median Program Coverage Over Time:', input$country),
            x = 'Fiscal Year', 
            y = 'Median Program Coverage')
@@ -104,45 +108,49 @@ shinyServer(function(input, output) {
   output$tableHistory <- renderTable(countryData()[, 2:length(countryData())], include.rownames=FALSE)
 
   output$histograms <- renderPlot({
-    ggplot(districtData(), aes(x=prg_cvg)) + 
-      geom_histogram(binwidth=.1, colour="black", fill="white") +
-      scale_x_continuous(breaks = round(seq(0, (max(districtData()[,'prg_cvg'], na.rm=TRUE) + 0.1), by=0.1), 1)) + 
-      labs(title = paste('Program Coverage Distribution:', input$disease, input$year),
-           x = 'Program Coverage', 
-           y = '# districts') + 
-      facet_wrap( ~ disease, ncol=1)
+    data <- districtData()
+    pList <- list()
+    for(d in input$disease){
+      if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
+        pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(x=prg_cvg)) + 
+          geom_histogram(binwidth=.1, colour="black", fill="white") +
+          scale_x_continuous(breaks = round(seq(0, (max(districtData()[,'prg_cvg'], na.rm=TRUE) + 0.1), by=0.1), 1)) + 
+          labs(title = paste(d, input$year),
+               x = 'Program Coverage', 
+               y = '# districts')
+      }
+    }
+    do.call("grid.arrange", c(pList, ncol=2))
   })
 
   output$stackedBars <- renderPlot({      
-    ggplot(districtData()[!is.na(districtData()[,'cvg_category']), ], aes(region_name, fill=cvg_category)) + 
-      geom_bar() + 
-      coord_flip() + 
-      labs(title = paste('Region-Level Coverage Breakdowns:', input$disease, input$year),
-           x = 'Region Name', 
-           y = 'Number of treated districts') + 
-      scale_fill_discrete(name="Coverage\nCategory") +
-      facet_wrap( ~ disease, ncol=1)
+    data <- districtData()[!is.na(districtData()[,'cvg_category']), ]
+    pList <- list()
+    for(d in input$disease){
+      if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
+        pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(region_name, fill=cvg_category)) + 
+          geom_bar() + 
+          coord_flip() + 
+          labs(title = paste(d, input$year),
+               x = 'Region Name', 
+               y = 'Number of treated districts') + 
+          scale_fill_discrete(name="Coverage\nCategory")
+      }
+    }
+    do.call("grid.arrange", c(pList))
   })
 
   
   output$districtUnder60 <- renderTable(underSixtyData(), 
-                                        caption="Districts with program coverage under 60 percent", 
-                                        caption.placement = "top", 
                                         include.rownames = FALSE)
 
   output$district60to80 <- renderTable(sixtyEightyData(), 
-                                       caption="Districts with program coverage between 60 and 80 percent", 
-                                       caption.placement = "top", 
                                        include.rownames=FALSE)
   
-  output$district80to100 <- renderTable(eighty100Data(), 
-                                        caption="Districts with program coverage between 80 and 100 percent", 
-                                        caption.placement = "top", 
+  output$district80to100 <- renderTable(eighty100Data(),
                                         include.rownames=FALSE)
   
-  output$district100plus <- renderTable(hundredPlusData(), 
-                                        caption="Districts with program coverage over 100 percent", 
-                                        caption.placement = "top", 
+  output$district100plus <- renderTable(hundredPlusData(),
                                         include.rownames=FALSE)
 })
 
