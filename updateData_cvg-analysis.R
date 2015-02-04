@@ -10,10 +10,10 @@ district['avg_hist_cvg'] <- ave(district[,'prg_cvg'],
                                       FUN = function(x) mean(x, na.rm=TRUE))
 rm(unique)
 
-district['cvg_category'] <- with(district, ifelse((prg_cvg > 0 & prg_cvg < 0.6), "Under 60 percent", 
-                                                  ifelse((prg_cvg >= 0.6 & prg_cvg < 0.8), "60 to 80 percent", 
-                                                         ifelse((prg_cvg >= 0.8 & prg_cvg <= 1), "80 to 100 percent", 
-                                                                "Over 100 percent"))))
+district['cvg_category'] <- with(district, ifelse((prg_cvg > 0 & prg_cvg < 0.6), "(1) Under 60 percent", 
+                                                  ifelse((prg_cvg >= 0.6 & prg_cvg < 0.8), "(2) 60 to 80 percent", 
+                                                         ifelse((prg_cvg >= 0.8 & prg_cvg <= 1), "(3) 80 to 100 percent", 
+                                                                "(4) Over 100 percent"))))
 
 region <- ddply(district, c('country_name', 'region_name', 'disease', 'fiscal_year'), summarize, 
                 total_treated = sum(prg_cvg > 0, na.rm=TRUE),

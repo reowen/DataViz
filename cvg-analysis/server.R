@@ -1,5 +1,6 @@
 library(shiny)
 library(ggplot2)
+library(gridExtra)
 
 country <- read.csv("data/country.csv")
 region <- read.csv("data/region.csv")
@@ -34,21 +35,22 @@ shinyServer(function(input, output) {
     return(data[with(data, order(country_name, region_name, prg_cvg)), ])
   })
   
+  
   output$ui <- renderUI({
     sidebarPanel(
       
-      checkboxGroupInput("country", 
-                         label = "Choose a country",
-                         choices = levels(country$country_name),
-                         selected = "Benin"),
+      radioButtons("country", 
+                   label = "Choose a country",
+                   choices = levels(country$country_name),
+                   selected = "Benin"),
       
-      radioButtons("disease", "Choose applicable diseases:", 
-                   c("LF" = "LF", 
-                     "Oncho" = "Oncho", 
-                     "Schisto" = "Schisto", 
-                     "STH" = "STH", 
-                     "Trachoma" = "Trachoma"), 
-                   selected = "LF"),
+      checkboxGroupInput("disease", "Choose applicable diseases:", 
+                         c("LF" = "LF", 
+                           "Oncho" = "Oncho", 
+                           "Schisto" = "Schisto", 
+                           "STH" = "STH", 
+                           "Trachoma" = "Trachoma"), 
+                         selected = "LF"),
       
       radioButtons("year", "Choose a fiscal year", 
                    c("FY07" = 2007, 
@@ -65,12 +67,12 @@ shinyServer(function(input, output) {
   
   output$plotHistory <- renderPlot({
     ggplot(country[(country$country_name %in% input$country & country$disease %in% input$disease), ], 
-           aes(x=fiscal_year, y=median_cvg, group=country_name, color=country_name, shape=country_name)) + 
+           aes(x=fiscal_year, y=median_cvg, group=disease, color=disease, shape=disease)) + 
       geom_line() + 
       geom_point() + 
       scale_x_continuous(breaks = seq(min(country$fiscal_year, na.rm=TRUE), 
                                         max(country$fiscal_year, na.rm=TRUE))) + 
-      labs(title = paste('Median Program Coverage Over Time:', input$disease),
+      labs(title = paste('Median Program Coverage Over Time:', input$country),
            x = 'Fiscal Year', 
            y = 'Median Program Coverage')
   })
@@ -80,27 +82,32 @@ shinyServer(function(input, output) {
   output$histograms <- renderPlot({
     ggplot(districtData(), aes(x=prg_cvg)) + 
       geom_histogram(binwidth=.1, colour="black", fill="white") +
-      geom_vline(aes(xintercept=median(prg_cvg, na.rm=TRUE)), color="red", linetype="dashed", size=1) +
       scale_x_continuous(breaks = round(seq(0, (max(districtData()[,'prg_cvg'], na.rm=TRUE) + 0.1), by=0.1), 1)) + 
       labs(title = paste('Program Coverage Distribution:', input$disease, input$year),
            x = 'Program Coverage', 
            y = '# districts') + 
-      facet_wrap( ~ country_name, ncol=2)
+      facet_wrap( ~ disease, ncol=1)
   })
 
   output$stackedBars <- renderPlot({      
+    g <- gridExtra::borderGrob(type=9)
+    
     ggplot(districtData()[!is.na(districtData()[,'cvg_category']), ], aes(region_name, fill=cvg_category)) + 
       geom_bar() + 
       coord_flip() + 
       labs(title = paste('Region-Level Coverage Breakdowns:', input$disease, input$year),
-           x = 'Number of treated districts', 
-           y = 'Region Name') + 
+           x = 'Region Name', 
+           y = 'Number of treated districts') + 
       scale_fill_discrete(name="Coverage\nCategory") +
-      facet_grid(country_name ~ .)
+      facet_wrap( ~ disease, ncol=1) + 
+      annotation_custom(g)
   })
 
   output$districtUnder60 <- renderTable(underSixtyData(), include.rownames=FALSE)
 
   
 })
+
+
+
 
