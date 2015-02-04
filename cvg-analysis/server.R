@@ -35,6 +35,29 @@ shinyServer(function(input, output) {
     return(data[with(data, order(country_name, region_name, prg_cvg)), ])
   })
   
+  sixtyEightyData <- reactive({
+    cols <- c('country_name', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
+              'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
+    data <- districtData()[(districtData()[, 'prg_cvg'] >= 0.6 & districtData()[, 'prg_cvg'] < 0.8), cols]
+    data <- data[!is.na(data$country_name), ]
+    return(data[with(data, order(country_name, region_name, prg_cvg)), ])
+  })
+  
+  eighty100Data <- reactive({
+    cols <- c('country_name', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
+              'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
+    data <- districtData()[(districtData()[, 'prg_cvg'] >= 0.8 & districtData()[, 'prg_cvg'] <= 1), cols]
+    data <- data[!is.na(data$country_name), ]
+    return(data[with(data, order(country_name, region_name, prg_cvg)), ])
+  })
+  
+  hundredPlusData <- reactive({
+    cols <- c('country_name', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
+              'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
+    data <- districtData()[(districtData()[, 'prg_cvg'] > 1), cols]
+    data <- data[!is.na(data$country_name), ]
+    return(data[with(data, order(country_name, region_name, prg_cvg)), ])
+  })
   
   output$ui <- renderUI({
     sidebarPanel(
@@ -103,11 +126,24 @@ shinyServer(function(input, output) {
       annotation_custom(g)
   })
 
-  output$districtUnder60 <- renderTable(underSixtyData(), include.rownames=FALSE)
+  output$districtUnder60 <- renderTable(underSixtyData(), 
+                                        caption="Districts with program coverage under 60 percent", 
+                                        caption.placement = "top", 
+                                        include.rownames=FALSE)
 
+  output$district60to80 <- renderTable(sixtyEightyData(), 
+                                       caption="Districts with program coverage between 60 and 80 percent", 
+                                       caption.placement = "top", 
+                                       include.rownames=FALSE)
   
+  output$district80to100 <- renderTable(eighty100Data(), 
+                                        caption="Districts with program coverage between 80 and 100 percent", 
+                                        caption.placement = "top", 
+                                        include.rownames=FALSE)
+  
+  output$district100plus <- renderTable(hundredPlusData(), 
+                                        caption="Districts with program coverage over 100 percent", 
+                                        caption.placement = "top", 
+                                        include.rownames=FALSE)
 })
-
-
-
 
