@@ -1,6 +1,7 @@
 library(shiny)
 library(ggplot2)
-library(gridExtra)
+# library(gridExtra)
+library(xtable)
 
 country <- read.csv("data/country.csv")
 region <- read.csv("data/region.csv")
@@ -113,8 +114,6 @@ shinyServer(function(input, output) {
   })
 
   output$stackedBars <- renderPlot({      
-    g <- gridExtra::borderGrob(type=9)
-    
     ggplot(districtData()[!is.na(districtData()[,'cvg_category']), ], aes(region_name, fill=cvg_category)) + 
       geom_bar() + 
       coord_flip() + 
@@ -122,14 +121,14 @@ shinyServer(function(input, output) {
            x = 'Region Name', 
            y = 'Number of treated districts') + 
       scale_fill_discrete(name="Coverage\nCategory") +
-      facet_wrap( ~ disease, ncol=1) + 
-      annotation_custom(g)
+      facet_wrap( ~ disease, ncol=1)
   })
 
+  
   output$districtUnder60 <- renderTable(underSixtyData(), 
                                         caption="Districts with program coverage under 60 percent", 
                                         caption.placement = "top", 
-                                        include.rownames=FALSE)
+                                        include.rownames = FALSE)
 
   output$district60to80 <- renderTable(sixtyEightyData(), 
                                        caption="Districts with program coverage between 60 and 80 percent", 
