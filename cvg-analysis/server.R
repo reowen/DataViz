@@ -132,6 +132,18 @@ shinyServer(function(input, output) {
                    selected = 2014)
     )
   })
+
+  output$ui2 <- renderUI({
+    sidebarPanel(
+      checkboxGroupInput("region", "Select Regions", 
+                         c("Region1", "Region2", "Region3"), 
+                         selected = "Region1"), 
+      checkboxGroupInput("district", "Select Districts", 
+                         c("District1", "District2", "District3"), 
+                         selected = "District1"), 
+      submitButton("Submit")
+        )
+  })
  
   
   output$plotHistory <- renderPlot({
