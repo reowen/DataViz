@@ -186,16 +186,16 @@ shinyServer(function(input, output) {
   })
 
   
-#   output$districtUnder60 <- renderTable(underSixtyData(), 
-#                                         include.rownames = FALSE)
-# 
-#   output$district60to80 <- renderTable(sixtyEightyData(), 
-#                                        include.rownames=FALSE)
-#   
-#   output$district80to100 <- renderTable(eighty100Data(),
-#                                         include.rownames=FALSE)
-#   
-#   output$district100plus <- renderTable(hundredPlusData(),
-#                                         include.rownames=FALSE)
+  output$districtUnder60 <- renderTable(underSixtyData(), 
+                                        include.rownames = FALSE)
+
+  output$district60to80 <- renderTable(sixtyEightyData(), 
+                                       include.rownames=FALSE)
+  
+  output$district80to100 <- renderTable(eighty100Data(),
+                                        include.rownames=FALSE)
+  
+  output$district100plus <- renderTable(hundredPlusData(),
+                                        include.rownames=FALSE)
 })
 
