@@ -58,6 +58,7 @@ shinyServer(function(input, output) {
                         district$fiscal_year %in% input$year), ]
     if(!is.null(input$funding) && input$funding == "all"){
       data <- data[, district_all_cols]
+      colnames(data)[9] <- "prg_cvg"
     } else {
       data <- data[, district_usaid_cols]
     }
@@ -149,23 +150,23 @@ shinyServer(function(input, output) {
   })
   
   output$tableHistory <- renderTable(countryTableData()[, 2:length(countryTableData())], include.rownames=FALSE)
-# 
-#   output$histograms <- renderPlot({
-#     data <- districtData()
-#     pList <- list()
-#     for(d in input$disease){
-#       if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
-#         pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(x=prg_cvg)) + 
-#           geom_histogram(binwidth=.1, colour="black", fill="white") +
-#           scale_x_continuous(breaks = round(seq(0, (max(districtData()[,'prg_cvg'], na.rm=TRUE) + 0.1), by=0.1), 1)) + 
-#           labs(title = paste(d, input$year),
-#                x = 'Program Coverage', 
-#                y = '# districts')
-#       }
-#     }
-#     do.call("grid.arrange", c(pList, ncol=2))
-#   })
-# 
+
+  output$histograms <- renderPlot({
+    data <- districtData()
+    pList <- list()
+    for(d in input$disease){
+      if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
+        pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(x=prg_cvg)) + 
+          geom_histogram(binwidth=.1, colour="black", fill="white") +
+          scale_x_continuous(breaks = round(seq(0, (max(data[,'prg_cvg'], na.rm=TRUE) + 0.1), by=0.1), 1)) + 
+          labs(title = paste(d, input$year),
+               x = 'Program Coverage', 
+               y = '# districts')
+      }
+    }
+    if(length(pList) > 0){do.call("grid.arrange", c(pList, ncol=2))}
+  })
+
 #   output$stackedBars <- renderPlot({      
 #     data <- districtData()[!is.na(districtData()[,'cvg_category']), ]
 #     pList <- list()
