@@ -27,7 +27,7 @@ shinyServer(function(input, output) {
     data <- country[(country$country_name %in% input$country & country$disease %in% input$disease), ]
     if(!is.null(input$funding) && input$funding == "all"){
       data <- data[, country_all_cols]
-      colnames(data)[6] <- "median_cvg"
+      for(i in 1:length(country_all_cols)){colnames(data)[i] <- country_usaid_cols[i]}
     } else {
       data <- data[, country_usaid_cols]
     }
@@ -40,6 +40,7 @@ shinyServer(function(input, output) {
                        country$fiscal_year %in% input$year), ]
     if(!is.null(input$funding) && input$funding == "all"){
       data <- data[, country_all_cols]
+      for(i in 1:length(country_all_cols)){colnames(data)[i] <- country_usaid_cols[i]}
     } else {
       data <- data[, country_usaid_cols]
     }
@@ -58,8 +59,7 @@ shinyServer(function(input, output) {
                         district$fiscal_year %in% input$year), ]
     if(!is.null(input$funding) && input$funding == "all"){
       data <- data[, district_all_cols]
-      colnames(data)[9] <- "prg_cvg"
-      colnames(data)[11] <- "cvg_category"
+      for(i in 1:length(district_all_cols)){colnames(data)[i] <- district_usaid_cols[i]}
     } else {
       data <- data[, district_usaid_cols]
     }
@@ -182,7 +182,7 @@ shinyServer(function(input, output) {
           scale_fill_discrete(name="Coverage\nCategory")
       }
     }
-    if(length(pList) > 0){do.call("grid.arrange", c(pList))}
+    if(length(pList) > 0){do.call("grid.arrange", c(pList, ncol=1))}
   })
 
   
