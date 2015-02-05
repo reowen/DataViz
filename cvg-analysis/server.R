@@ -4,7 +4,7 @@ library(grid)
 library(gridExtra)
 
 country <- read.csv("data/country.csv")
-region <- read.csv("data/region.csv")
+# region <- read.csv("data/region.csv")
 district <- read.csv("data/district.csv")
 
 shinyServer(function(input, output) {
