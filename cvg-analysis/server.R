@@ -7,24 +7,50 @@ country <- read.csv("data/country.csv")
 # region <- read.csv("data/region.csv")
 district <- read.csv("data/district.csv")
 
+country_all_cols <- c("country_name", "disease", "fiscal_year", "min_cvg_all", "max_cvg_all", "median_cvg_all", 
+                      "mean_cvg_all", "total_treated_all", "total_endemic")
+
+country_usaid_cols <- c("country_name", "disease", "fiscal_year", "min_cvg", "max_cvg", "median_cvg", 
+                        "mean_cvg", "total_treated", "total_endemic")
+
+district_all_cols <- c("country_name", "region_name", "district_name", "disease", "fiscal_year", 
+                       "times_treated_all", "min_prg_cvg_all", "max_prg_cvg_all", 
+                       "prg_cvg_all", "avg_hist_cvg_all", "cvg_category_all")
+
+district_usaid_cols <- c("country_name", "region_name", "district_name", "disease", "fiscal_year", 
+                         "times_treated", "min_prg_cvg", "max_prg_cvg", 
+                         "prg_cvg", "avg_hist_cvg", "cvg_category")
+
 shinyServer(function(input, output) {
   
   countryData <- reactive({
-    return(country[(country$country_name %in% input$country & 
-                      country$disease %in% input$disease & 
-                      country$fiscal_year == input$year), ])
+    data <- country[(country$country_name %in% input$country & 
+                       country$disease %in% input$disease & 
+                       country$fiscal_year %in% input$year), ]
+    if(input$funding == "all"){
+      data <- data[, country_all_cols]
+    } else {
+      data <- data[, country_usaid_cols]
+    }
+    return(data)
   })
   
-  regionData <- reactive({
-    return(region[(region$country_name %in% input$country & 
-                     region$disease %in% input$disease & 
-                     region$fiscal_year == input$year), ])
-  })
+#   regionData <- reactive({
+#     return(region[(region$country_name %in% input$country & 
+#                      region$disease %in% input$disease & 
+#                      region$fiscal_year == input$year), ])
+#   })
   
   districtData <- reactive({
-    return(district[(district$country_name %in% input$country & 
-                       district$disease %in% input$disease & 
-                       district$fiscal_year == input$year), ])
+    data <- district[(district$country_name %in% input$country & 
+                        district$disease %in% input$disease & 
+                        district$fiscal_year %in% input$year), ]
+    if(input$funding == "all"){
+      data <- data[, district_all_cols]
+    } else {
+      data <- data[, district_usaid_cols]
+    }
+    return(data)
   })
   
   underSixtyData <- reactive({
@@ -61,6 +87,12 @@ shinyServer(function(input, output) {
   
   output$ui <- renderUI({
     sidebarPanel(
+      radioButtons("funding", 
+                   label = "Select a funding option", 
+                   choices = c("USAID support" = "usaid", 
+                               "All support" = "all"), 
+                   selected = "usaid", 
+                   inline = TRUE),
       
       radioButtons("country", 
                    label = "Choose a country",
