@@ -23,11 +23,22 @@ district_usaid_cols <- c("country_name", "region_name", "district_name", "diseas
 
 shinyServer(function(input, output) {
   
-  countryData <- reactive({
+  countryHistoryData <- reactive({
+    data <- country[(country$country_name %in% input$country & country$disease %in% input$disease), ]
+    if(!is.null(input$funding) && input$funding == "all"){
+      data <- data[, country_all_cols]
+      colnames(data)[6] <- "median_cvg"
+    } else {
+      data <- data[, country_usaid_cols]
+    }
+    return(data)
+  })
+  
+  countryTableData <- reactive({
     data <- country[(country$country_name %in% input$country & 
                        country$disease %in% input$disease & 
                        country$fiscal_year %in% input$year), ]
-    if(input$funding == "all"){
+    if(!is.null(input$funding) && input$funding == "all"){
       data <- data[, country_all_cols]
     } else {
       data <- data[, country_usaid_cols]
@@ -45,7 +56,7 @@ shinyServer(function(input, output) {
     data <- district[(district$country_name %in% input$country & 
                         district$disease %in% input$disease & 
                         district$fiscal_year %in% input$year), ]
-    if(input$funding == "all"){
+    if(!is.null(input$funding) && input$funding == "all"){
       data <- data[, district_all_cols]
     } else {
       data <- data[, district_usaid_cols]
@@ -122,10 +133,10 @@ shinyServer(function(input, output) {
  
   
   output$plotHistory <- renderPlot({
-    max_cvg <- max(country[(country$country_name %in% input$country & country$disease %in% input$disease), "median_cvg"], na.rm=TRUE)
-    
-    ggplot(country[(country$country_name %in% input$country & country$disease %in% input$disease), ], 
-           aes(x=fiscal_year, y=median_cvg, group=disease, color=disease, shape=disease)) + 
+    data <- countryHistoryData()
+    max_cvg <- max(data[,"median_cvg"], na.rm=TRUE)
+      
+    ggplot(data, aes(x=fiscal_year, y=median_cvg, group=disease, color=disease, shape=disease)) + 
       geom_line() + 
       geom_point() + 
       scale_x_continuous(breaks = seq(min(country$fiscal_year, na.rm=TRUE), 
@@ -137,52 +148,52 @@ shinyServer(function(input, output) {
            y = 'Median Program Coverage')
   })
   
-  output$tableHistory <- renderTable(countryData()[, 2:length(countryData())], include.rownames=FALSE)
-
-  output$histograms <- renderPlot({
-    data <- districtData()
-    pList <- list()
-    for(d in input$disease){
-      if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
-        pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(x=prg_cvg)) + 
-          geom_histogram(binwidth=.1, colour="black", fill="white") +
-          scale_x_continuous(breaks = round(seq(0, (max(districtData()[,'prg_cvg'], na.rm=TRUE) + 0.1), by=0.1), 1)) + 
-          labs(title = paste(d, input$year),
-               x = 'Program Coverage', 
-               y = '# districts')
-      }
-    }
-    do.call("grid.arrange", c(pList, ncol=2))
-  })
-
-  output$stackedBars <- renderPlot({      
-    data <- districtData()[!is.na(districtData()[,'cvg_category']), ]
-    pList <- list()
-    for(d in input$disease){
-      if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
-        pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(region_name, fill=cvg_category)) + 
-          geom_bar() + 
-          coord_flip() + 
-          labs(title = paste(d, input$year),
-               x = 'Region Name', 
-               y = 'Number of treated districts') + 
-          scale_fill_discrete(name="Coverage\nCategory")
-      }
-    }
-    do.call("grid.arrange", c(pList))
-  })
-
-  
-  output$districtUnder60 <- renderTable(underSixtyData(), 
-                                        include.rownames = FALSE)
-
-  output$district60to80 <- renderTable(sixtyEightyData(), 
-                                       include.rownames=FALSE)
-  
-  output$district80to100 <- renderTable(eighty100Data(),
-                                        include.rownames=FALSE)
-  
-  output$district100plus <- renderTable(hundredPlusData(),
-                                        include.rownames=FALSE)
+  output$tableHistory <- renderTable(countryTableData()[, 2:length(countryTableData())], include.rownames=FALSE)
+# 
+#   output$histograms <- renderPlot({
+#     data <- districtData()
+#     pList <- list()
+#     for(d in input$disease){
+#       if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
+#         pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(x=prg_cvg)) + 
+#           geom_histogram(binwidth=.1, colour="black", fill="white") +
+#           scale_x_continuous(breaks = round(seq(0, (max(districtData()[,'prg_cvg'], na.rm=TRUE) + 0.1), by=0.1), 1)) + 
+#           labs(title = paste(d, input$year),
+#                x = 'Program Coverage', 
+#                y = '# districts')
+#       }
+#     }
+#     do.call("grid.arrange", c(pList, ncol=2))
+#   })
+# 
+#   output$stackedBars <- renderPlot({      
+#     data <- districtData()[!is.na(districtData()[,'cvg_category']), ]
+#     pList <- list()
+#     for(d in input$disease){
+#       if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
+#         pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(region_name, fill=cvg_category)) + 
+#           geom_bar() + 
+#           coord_flip() + 
+#           labs(title = paste(d, input$year),
+#                x = 'Region Name', 
+#                y = 'Number of treated districts') + 
+#           scale_fill_discrete(name="Coverage\nCategory")
+#       }
+#     }
+#     do.call("grid.arrange", c(pList))
+#   })
+# 
+#   
+#   output$districtUnder60 <- renderTable(underSixtyData(), 
+#                                         include.rownames = FALSE)
+# 
+#   output$district60to80 <- renderTable(sixtyEightyData(), 
+#                                        include.rownames=FALSE)
+#   
+#   output$district80to100 <- renderTable(eighty100Data(),
+#                                         include.rownames=FALSE)
+#   
+#   output$district100plus <- renderTable(hundredPlusData(),
+#                                         include.rownames=FALSE)
 })
 
