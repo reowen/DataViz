@@ -8,6 +8,10 @@ unique = paste(district$country_name, district$region_name, district$district_na
 district['avg_hist_cvg'] <- ave(district[,'prg_cvg'], 
                                       unique, 
                                       FUN = function(x) mean(x, na.rm=TRUE))
+
+district['avg_hist_cvg_all'] <- ave(district[,'prg_cvg_all'], 
+                                    unique, 
+                                    FUN = function(x) mean(x, na.rm=TRUE))
 rm(unique)
 
 district['cvg_category'] <- with(district, ifelse((prg_cvg > 0 & prg_cvg < 0.6), "(1) Under 60 percent", 
