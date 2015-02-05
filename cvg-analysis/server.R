@@ -59,6 +59,7 @@ shinyServer(function(input, output) {
     if(!is.null(input$funding) && input$funding == "all"){
       data <- data[, district_all_cols]
       colnames(data)[9] <- "prg_cvg"
+      colnames(data)[11] <- "cvg_category"
     } else {
       data <- data[, district_usaid_cols]
     }
@@ -167,24 +168,24 @@ shinyServer(function(input, output) {
     if(length(pList) > 0){do.call("grid.arrange", c(pList, ncol=2))}
   })
 
-#   output$stackedBars <- renderPlot({      
-#     data <- districtData()[!is.na(districtData()[,'cvg_category']), ]
-#     pList <- list()
-#     for(d in input$disease){
-#       if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
-#         pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(region_name, fill=cvg_category)) + 
-#           geom_bar() + 
-#           coord_flip() + 
-#           labs(title = paste(d, input$year),
-#                x = 'Region Name', 
-#                y = 'Number of treated districts') + 
-#           scale_fill_discrete(name="Coverage\nCategory")
-#       }
-#     }
-#     do.call("grid.arrange", c(pList))
-#   })
-# 
-#   
+  output$stackedBars <- renderPlot({      
+    data <- districtData()[!is.na(districtData()[,'cvg_category']), ]
+    pList <- list()
+    for(d in input$disease){
+      if(nrow(data[data$disease == d & !is.na(data$prg_cvg),]) > 0){
+        pList[[(length(pList) + 1)]] <- ggplot(data[data$disease == d,], aes(region_name, fill=cvg_category)) + 
+          geom_bar() + 
+          coord_flip() + 
+          labs(title = paste(d, input$year),
+               x = 'Region Name', 
+               y = 'Number of treated districts') + 
+          scale_fill_discrete(name="Coverage\nCategory")
+      }
+    }
+    if(length(pList) > 0){do.call("grid.arrange", c(pList))}
+  })
+
+  
 #   output$districtUnder60 <- renderTable(underSixtyData(), 
 #                                         include.rownames = FALSE)
 # 
