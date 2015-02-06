@@ -22,6 +22,45 @@ district_usaid_cols <- c("country_name", "region_name", "district_name", "diseas
                          "prg_cvg", "avg_hist_cvg", "cvg_category")
 
 shinyServer(function(input, output) {
+ 
+## Sidebar, main tab ######################################################################################
+  
+  output$uiMainTab <- renderUI({
+    sidebarPanel(
+      radioButtons("funding", 
+                   label = "Select a funding option", 
+                   choices = c("USAID support" = "usaid", 
+                               "All support" = "all"), 
+                   selected = "usaid", 
+                   inline = TRUE),
+      
+      radioButtons("country", 
+                   label = "Choose a country",
+                   choices = levels(country$country_name),
+                   selected = "Benin"),
+      
+      checkboxGroupInput("disease", "Choose applicable diseases:", 
+                         c("LF" = "LF", 
+                           "Oncho" = "Oncho", 
+                           "Schisto" = "Schisto", 
+                           "STH" = "STH", 
+                           "Trachoma" = "Trachoma"), 
+                         selected = "LF"),
+      
+      radioButtons("year", "Choose a fiscal year", 
+                   c("FY07" = 2007, 
+                     "FY08" = 2008, 
+                     "FY09" = 2009, 
+                     "FY10" = 2010, 
+                     "FY11" = 2011,
+                     "FY12" = 2012, 
+                     "FY13" = 2013,
+                     "FY14" = 2014), 
+                   selected = 2014)
+    )
+  })
+  
+## Main panel, main tab ####################################################################
   
   countryHistoryData <- reactive({
     data <- country[(country$country_name %in% input$country & country$disease %in% input$disease), ]
@@ -39,19 +78,6 @@ shinyServer(function(input, output) {
     data <- data[with(data, order(country_name, disease, fiscal_year)), ]
     return(data)
   })
-  
-#   countryTableData <- reactive({
-#     data <- country[(country$country_name %in% input$country & 
-#                        country$disease %in% input$disease & 
-#                        country$fiscal_year %in% input$year), ]
-#     if(!is.null(input$funding) && input$funding == "all"){
-#       data <- data[, country_all_cols]
-#       for(i in 1:length(country_all_cols)){colnames(data)[i] <- country_usaid_cols[i]}
-#     } else {
-#       data <- data[, country_usaid_cols]
-#     }
-#     return(data)
-#   })
   
 #   regionData <- reactive({
 #     return(region[(region$country_name %in% input$country & 
@@ -103,60 +129,6 @@ shinyServer(function(input, output) {
     data <- data[!is.na(data$country_name), ]
     return(data[with(data, order(country_name, region_name, prg_cvg)), ])
   })
-  
-  output$ui <- renderUI({
-    sidebarPanel(
-      radioButtons("funding", 
-                   label = "Select a funding option", 
-                   choices = c("USAID support" = "usaid", 
-                               "All support" = "all"), 
-                   selected = "usaid", 
-                   inline = TRUE),
-      
-      radioButtons("country", 
-                   label = "Choose a country",
-                   choices = levels(country$country_name),
-                   selected = "Benin"),
-      
-      checkboxGroupInput("disease", "Choose applicable diseases:", 
-                         c("LF" = "LF", 
-                           "Oncho" = "Oncho", 
-                           "Schisto" = "Schisto", 
-                           "STH" = "STH", 
-                           "Trachoma" = "Trachoma"), 
-                         selected = "LF"),
-      
-      radioButtons("year", "Choose a fiscal year", 
-                   c("FY07" = 2007, 
-                     "FY08" = 2008, 
-                     "FY09" = 2009, 
-                     "FY10" = 2010, 
-                     "FY11" = 2011,
-                     "FY12" = 2012, 
-                     "FY13" = 2013,
-                     "FY14" = 2014), 
-                   selected = 2014)
-    )
-  })
-
-#   output$uiRegion <- renderUI({
-#     if(is.null(input$country)){
-#       return()
-#     }
-#     checkboxGroupInput("region", "Select Regions", 
-#                        choices = levels(country[country$country_name == input$country, 'region_name']))
-#   })
-
-# sidebarPanel(
-#   checkboxGroupInput("region", "Select Regions", 
-#                      c("Region1", "Region2", "Region3"), 
-#                      selected = "Region1"), 
-#   checkboxGroupInput("district", "Select Districts", 
-#                      c("District1", "District2", "District3"), 
-#                      selected = "District1"), 
-#   
-# )
- 
   
   output$plotHistory <- renderPlot({
     data <- countryHistoryData()
@@ -221,5 +193,51 @@ shinyServer(function(input, output) {
   
   output$district100plus <- renderTable(hundredPlusData(),
                                         include.rownames=FALSE)
+
+
+# Side panel, District Trends Tab ##########################################################################
+
+output$uiRegion <- renderUI({
+  if(is.null(input$country)){
+    return(NULL)
+  }
+  regions <- unique(as.character(district[district$country_name == input$country, "region_name"]))
+  radioButtons("region", "Select Regions", 
+               regions)
+})
+
+output$uiDistrict <- renderUI({
+  if(is.null(input$region)){
+    return(NULL)
+  }
+  districts <- unique(as.character(district[district$country_name == input$country & 
+                                              district$region_name == input$region, "district_name"]))
+  checkboxGroupInput("district", "Select Districts", 
+                     districts)
+})
+
+## Main panel, District Trends tab ##################################################################
+
+output$testText <- renderText({
+  input$districtButton
+  isolate(input$region)
+})
+
+output$testText2 <- renderText({
+  input$districtButton
+  isolate(input$district)
+})
+
+# sidebarPanel(
+#   checkboxGroupInput("region", "Select Regions", 
+#                      c("Region1", "Region2", "Region3"), 
+#                      selected = "Region1"), 
+#   checkboxGroupInput("district", "Select Districts", 
+#                      c("District1", "District2", "District3"), 
+#                      selected = "District1"), 
+#   
+# )
+
+
 })
 

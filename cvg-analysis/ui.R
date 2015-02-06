@@ -2,7 +2,7 @@ library(shiny)
 
 shinyUI(navbarPage("Coverage Analysis Tool", 
                    tabPanel("Country Snapshot", 
-                            uiOutput("ui"), 
+                            uiOutput("uiMainTab"), 
                             
                             mainPanel(
                               fluidRow(
@@ -70,17 +70,20 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                    tabPanel("District-Trends", 
                             h3("Coming soon"), 
                             
-#                             sidebarPanel(
-#                               uiOutput("uiRegion"),
-#                               
-#                               uiOutput("uiDistrict"),
-#                               
-#                               submitButton("Submit")
-#                               
-#                               ),
+                            sidebarPanel(
+                              
+                              tags$form(
+                                uiOutput("uiRegion"), 
+                                
+                                uiOutput("uiDistrict"),
+                                
+                                actionButton("districtButton", "Submit")
+                                ) 
+                              ),
 
                             mainPanel(
-                              h5("chart here")
+                              textOutput("testText"), 
+                              textOutput("testText2")
                               )
                             )
 ))
