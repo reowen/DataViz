@@ -102,11 +102,13 @@ country <- ddply(raw_cvg, c('country_name', 'disease', 'fiscal_year'), summarize
                  max_cvg = max(prg_cvg, na.rm=TRUE), 
                  median_cvg = median(prg_cvg, na.rm=TRUE), 
                  mean_cvg = mean(prg_cvg, na.rm=TRUE), 
+                 std_dev = sd(prg_cvg, na.rm=TRUE),
                  total_treated = sum(prg_cvg > 0, na.rm=TRUE), 
                  min_cvg_all = min(prg_cvg_all, na.rm=TRUE), 
                  max_cvg_all = max(prg_cvg_all, na.rm=TRUE), 
                  median_cvg_all = median(prg_cvg_all, na.rm=TRUE), 
                  mean_cvg_all = mean(prg_cvg_all, na.rm=TRUE), 
+                 std_dev_all = sd(prg_cvg_all, na.rm=TRUE),
                  total_treated_all = sum(prg_cvg_all > 0, na.rm=TRUE),
                  total_endemic = sum(persons_at_risk > 0, na.rm=TRUE))
 

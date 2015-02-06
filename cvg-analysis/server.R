@@ -8,10 +8,10 @@ country <- read.csv("data/country.csv")
 district <- read.csv("data/district.csv")
 
 country_all_cols <- c("country_name", "disease", "fiscal_year", "min_cvg_all", "max_cvg_all", "median_cvg_all", 
-                      "mean_cvg_all", "total_treated_all", "total_endemic")
+                      "mean_cvg_all", "std_dev_all", "total_treated_all", "total_endemic")
 
 country_usaid_cols <- c("country_name", "disease", "fiscal_year", "min_cvg", "max_cvg", "median_cvg", 
-                        "mean_cvg", "total_treated", "total_endemic")
+                        "mean_cvg", "std_dev", "total_treated", "total_endemic")
 
 district_all_cols <- c("country_name", "region_name", "district_name", "disease", "fiscal_year", 
                        "times_treated_all", "min_prg_cvg_all", "max_prg_cvg_all", 
@@ -33,19 +33,25 @@ shinyServer(function(input, output) {
     }
     return(data)
   })
-  
+
   countryTableData <- reactive({
-    data <- country[(country$country_name %in% input$country & 
-                       country$disease %in% input$disease & 
-                       country$fiscal_year %in% input$year), ]
-    if(!is.null(input$funding) && input$funding == "all"){
-      data <- data[, country_all_cols]
-      for(i in 1:length(country_all_cols)){colnames(data)[i] <- country_usaid_cols[i]}
-    } else {
-      data <- data[, country_usaid_cols]
-    }
+    data <- countryHistoryData()
+    data <- data[with(data, order(country_name, disease, fiscal_year)), ]
     return(data)
   })
+  
+#   countryTableData <- reactive({
+#     data <- country[(country$country_name %in% input$country & 
+#                        country$disease %in% input$disease & 
+#                        country$fiscal_year %in% input$year), ]
+#     if(!is.null(input$funding) && input$funding == "all"){
+#       data <- data[, country_all_cols]
+#       for(i in 1:length(country_all_cols)){colnames(data)[i] <- country_usaid_cols[i]}
+#     } else {
+#       data <- data[, country_usaid_cols]
+#     }
+#     return(data)
+#   })
   
 #   regionData <- reactive({
 #     return(region[(region$country_name %in% input$country & 
@@ -133,17 +139,23 @@ shinyServer(function(input, output) {
     )
   })
 
-  output$ui2 <- renderUI({
-    sidebarPanel(
-      checkboxGroupInput("region", "Select Regions", 
-                         c("Region1", "Region2", "Region3"), 
-                         selected = "Region1"), 
-      checkboxGroupInput("district", "Select Districts", 
-                         c("District1", "District2", "District3"), 
-                         selected = "District1"), 
-      submitButton("Submit")
-        )
-  })
+#   output$uiRegion <- renderUI({
+#     if(is.null(input$country)){
+#       return()
+#     }
+#     checkboxGroupInput("region", "Select Regions", 
+#                        choices = levels(country[country$country_name == input$country, 'region_name']))
+#   })
+
+# sidebarPanel(
+#   checkboxGroupInput("region", "Select Regions", 
+#                      c("Region1", "Region2", "Region3"), 
+#                      selected = "Region1"), 
+#   checkboxGroupInput("district", "Select Districts", 
+#                      c("District1", "District2", "District3"), 
+#                      selected = "District1"), 
+#   
+# )
  
   
   output$plotHistory <- renderPlot({

@@ -70,8 +70,15 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                    tabPanel("District-Trends", 
                             h3("Coming soon"), 
                             
-                            uiOutput("ui2"), 
-                            
+#                             sidebarPanel(
+#                               uiOutput("uiRegion"),
+#                               
+#                               uiOutput("uiDistrict"),
+#                               
+#                               submitButton("Submit")
+#                               
+#                               ),
+
                             mainPanel(
                               h5("chart here")
                               )
