@@ -23,44 +23,7 @@ district_usaid_cols <- c("country_name", "region_name", "district_name", "diseas
 
 shinyServer(function(input, output) {
  
-## Sidebar, main tab ######################################################################################
-  
-  output$uiMainTab <- renderUI({
-    sidebarPanel(
-      radioButtons("funding", 
-                   label = "Select a funding option", 
-                   choices = c("USAID support" = "usaid", 
-                               "All support" = "all"), 
-                   selected = "usaid", 
-                   inline = TRUE),
-      
-      radioButtons("country", 
-                   label = "Choose a country",
-                   choices = levels(country$country_name),
-                   selected = "Benin"),
-      
-      checkboxGroupInput("disease", "Choose applicable diseases:", 
-                         c("LF" = "LF", 
-                           "Oncho" = "Oncho", 
-                           "Schisto" = "Schisto", 
-                           "STH" = "STH", 
-                           "Trachoma" = "Trachoma"), 
-                         selected = "LF"),
-      
-      radioButtons("year", "Choose a fiscal year", 
-                   c("FY07" = 2007, 
-                     "FY08" = 2008, 
-                     "FY09" = 2009, 
-                     "FY10" = 2010, 
-                     "FY11" = 2011,
-                     "FY12" = 2012, 
-                     "FY13" = 2013,
-                     "FY14" = 2014), 
-                   selected = 2014)
-    )
-  })
-  
-## Main panel, main tab ####################################################################
+## Data-generating functions ######################################################################################
   
   countryHistoryData <- reactive({
     data <- country[(country$country_name %in% input$country & country$disease %in% input$disease), ]
@@ -72,18 +35,18 @@ shinyServer(function(input, output) {
     }
     return(data)
   })
-
+  
   countryTableData <- reactive({
     data <- countryHistoryData()
     data <- data[with(data, order(country_name, disease, fiscal_year)), ]
     return(data)
   })
   
-#   regionData <- reactive({
-#     return(region[(region$country_name %in% input$country & 
-#                      region$disease %in% input$disease & 
-#                      region$fiscal_year == input$year), ])
-#   })
+  #   regionData <- reactive({
+  #     return(region[(region$country_name %in% input$country & 
+  #                      region$disease %in% input$disease & 
+  #                      region$fiscal_year == input$year), ])
+  #   })
   
   districtData <- reactive({
     data <- district[(district$country_name %in% input$country & 
@@ -129,6 +92,45 @@ shinyServer(function(input, output) {
     data <- data[!is.na(data$country_name), ]
     return(data[with(data, order(country_name, region_name, prg_cvg)), ])
   })
+  
+## Sidebar, main tab ######################################################################################
+  
+  output$uiMainTab <- renderUI({
+    sidebarPanel(
+      radioButtons("funding", 
+                   label = "Select a funding option", 
+                   choices = c("USAID support" = "usaid", 
+                               "All support" = "all"), 
+                   selected = "usaid", 
+                   inline = TRUE),
+      
+      radioButtons("country", 
+                   label = "Choose a country",
+                   choices = levels(country$country_name),
+                   selected = "Benin"),
+      
+      checkboxGroupInput("disease", "Choose applicable diseases:", 
+                         c("LF" = "LF", 
+                           "Oncho" = "Oncho", 
+                           "Schisto" = "Schisto", 
+                           "STH" = "STH", 
+                           "Trachoma" = "Trachoma"), 
+                         selected = "LF"),
+      
+      radioButtons("year", "Choose a fiscal year", 
+                   c("FY07" = 2007, 
+                     "FY08" = 2008, 
+                     "FY09" = 2009, 
+                     "FY10" = 2010, 
+                     "FY11" = 2011,
+                     "FY12" = 2012, 
+                     "FY13" = 2013,
+                     "FY14" = 2014), 
+                   selected = 2014)
+    )
+  })
+  
+## Main panel, main tab ####################################################################
   
   output$plotHistory <- renderPlot({
     data <- countryHistoryData()
@@ -233,8 +235,11 @@ output$districtTabIntro <- renderUI({
   }
 })
 
-output$testText <- renderText({
+output$districtLinegraph <- renderText({
   input$districtButton
+  
+  
+  
   isolate(input$region)
 })
 
