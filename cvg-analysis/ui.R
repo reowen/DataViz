@@ -87,7 +87,7 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                               uiOutput("districtTabIntro"),
                               
                               plotOutput("districtLinegraph"), 
-                              textOutput("testText2")
+                              tableOutput("districtHistoryTable")
                               )
                             )
 ))

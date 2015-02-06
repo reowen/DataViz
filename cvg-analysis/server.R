@@ -15,11 +15,11 @@ country_usaid_cols <- c("country_name", "disease", "fiscal_year", "min_cvg", "ma
 
 district_all_cols <- c("country_name", "region_name", "district_name", "disease", "fiscal_year", 
                        "times_treated_all", "min_prg_cvg_all", "max_prg_cvg_all", 
-                       "prg_cvg_all", "avg_hist_cvg_all", "cvg_category_all")
+                       "prg_cvg_all", "avg_hist_cvg_all", "cvg_category_all", "region_district")
 
 district_usaid_cols <- c("country_name", "region_name", "district_name", "disease", "fiscal_year", 
                          "times_treated", "min_prg_cvg", "max_prg_cvg", 
-                         "prg_cvg", "avg_hist_cvg", "cvg_category")
+                         "prg_cvg", "avg_hist_cvg", "cvg_category", "region_district")
 
 shinyServer(function(input, output) {
  
@@ -48,49 +48,66 @@ shinyServer(function(input, output) {
   #                      region$fiscal_year == input$year), ])
   #   })
   
-  districtData <- reactive({
-    data <- district[(district$country_name %in% input$country & 
-                        district$disease %in% input$disease & 
-                        district$fiscal_year %in% input$year), ]
+  districtSetFunding <- reactive({
     if(!is.null(input$funding) && input$funding == "all"){
-      data <- data[, district_all_cols]
+      data <- district[, district_all_cols]
       for(i in 1:length(district_all_cols)){colnames(data)[i] <- district_usaid_cols[i]}
     } else {
-      data <- data[, district_usaid_cols]
+      data <- district[, district_usaid_cols]
     }
     return(data)
   })
+
+  districtData <- reactive({
+    data <- districtSetFunding()
+    data <- data[(data$country_name %in% input$country & 
+                    data$disease %in% input$disease & 
+                    data$fiscal_year %in% input$year), ]
+    return(data)
+  })
+
+  districtHistoryData <- reactive({
+    input$districtButton
+    data <- districtSetFunding()
+    data <- data[(data$region_district %in% isolate(input$district) & 
+                        data$disease %in% input$disease), ]
+    return(data)
+  })
+
+  districtHistoryTableData <- reactive({
+    input$districtButton
+  })
   
   underSixtyData <- reactive({
-    cols <- c('country_name', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
+    cols <- c('disease', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
               'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
     data <- districtData()[(districtData()[, 'prg_cvg'] < 0.6), cols]
-    data <- data[!is.na(data$country_name), ]
-    return(data[with(data, order(country_name, region_name, prg_cvg)), ])
+    data <- data[!is.na(data$region_name), ]
+    return(data[with(data, order(disease, region_name, prg_cvg)), ])
   })
   
   sixtyEightyData <- reactive({
-    cols <- c('country_name', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
+    cols <- c('disease', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
               'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
     data <- districtData()[(districtData()[, 'prg_cvg'] >= 0.6 & districtData()[, 'prg_cvg'] < 0.8), cols]
-    data <- data[!is.na(data$country_name), ]
-    return(data[with(data, order(country_name, region_name, prg_cvg)), ])
+    data <- data[!is.na(data$region_name), ]
+    return(data[with(data, order(disease, region_name, prg_cvg)), ])
   })
   
   eighty100Data <- reactive({
-    cols <- c('country_name', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
+    cols <- c('disease', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
               'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
     data <- districtData()[(districtData()[, 'prg_cvg'] >= 0.8 & districtData()[, 'prg_cvg'] <= 1), cols]
-    data <- data[!is.na(data$country_name), ]
-    return(data[with(data, order(country_name, region_name, prg_cvg)), ])
+    data <- data[!is.na(data$region_name), ]
+    return(data[with(data, order(disease, region_name, prg_cvg)), ])
   })
   
   hundredPlusData <- reactive({
-    cols <- c('country_name', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
+    cols <- c('disease', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
               'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
     data <- districtData()[(districtData()[, 'prg_cvg'] > 1), cols]
-    data <- data[!is.na(data$country_name), ]
-    return(data[with(data, order(country_name, region_name, prg_cvg)), ])
+    data <- data[!is.na(data$region_name), ]
+    return(data[with(data, order(disease, region_name, prg_cvg)), ])
   })
   
 ## Sidebar, main tab ######################################################################################
@@ -235,18 +252,27 @@ output$districtTabIntro <- renderUI({
   }
 })
 
-output$districtLinegraph <- renderText({
-  input$districtButton
+output$districtLinegraph <- renderPlot({
+  data <- districtHistoryData()
+  data$region_district <- as.factor(data$region_district)
+  max_cvg <- max(data[,"prg_cvg"], na.rm=TRUE)
   
-  
-  
-  isolate(input$region)
+  ggplot(data, aes(x=fiscal_year, y=prg_cvg, group=interaction(disease, region_district), 
+                   color=interaction(disease, region_district))) + 
+    geom_line() + 
+    geom_point() + 
+    scale_x_continuous(breaks = seq(min(data$fiscal_year, na.rm=TRUE), 
+                                    max(data$fiscal_year, na.rm=TRUE))) + 
+    scale_y_continuous(breaks = round(seq(0, max_cvg, by=0.1), 1)) +
+    expand_limits(y=0) + 
+    labs(title = 'Program Coverage Trends',
+         x = 'Fiscal Year', 
+         y = 'Program Coverage')
 })
 
-output$testText2 <- renderText({
-  input$districtButton
-  isolate(input$district)
-})
+output$districtHistoryTable <- renderTable(districtHistoryTableData(), 
+                                           include.rownames = FALSE)
+
 
 # sidebarPanel(
 #   checkboxGroupInput("region", "Select Regions", 
