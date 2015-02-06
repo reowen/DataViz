@@ -1,8 +1,14 @@
 library(shiny)
 
 shinyUI(navbarPage("Coverage Analysis Tool", 
+                   
                    tabPanel("Country Snapshot", 
                             uiOutput("uiMainTab"), 
+                            
+                            tags$style(type="text/css",
+                                       ".shiny-output-error { visibility: hidden; }",
+                                       ".shiny-output-error:before { visibility: hidden; }"
+                            ),
                             
                             mainPanel(
                               fluidRow(
@@ -68,6 +74,12 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                             )
                             ), 
                    tabPanel("District-Trends", 
+                            
+                            tags$style(type="text/css",
+                                       ".shiny-output-error { visibility: hidden; }",
+                                       ".shiny-output-error:before { visibility: hidden; }"
+                            ),
+                            
                             titlePanel(
                               textOutput("districtTitle")
                               ), 
@@ -86,8 +98,11 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                             mainPanel(
                               uiOutput("districtTabIntro"),
                               
-                              plotOutput("districtLinegraph"), 
-                              tableOutput("districtHistoryTable")
+                              conditionalPanel("input.district != null", 
+                                               plotOutput("districtLinegraph")),
+                              
+                              conditionalPanel("input.district != null", 
+                                               tableOutput("districtHistoryTable"))
                               )
                             )
 ))

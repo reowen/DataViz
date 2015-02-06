@@ -76,6 +76,15 @@ shinyServer(function(input, output) {
 
   districtHistoryTableData <- reactive({
     input$districtButton
+    data <- districtSetFunding()
+    data <- data[(data$region_district %in% isolate(input$district) & 
+                    data$disease %in% input$disease & !is.na(data$prg_cvg)), 
+                 c("region_name", "district_name", "disease", "fiscal_year", "prg_cvg")]
+    data <- reshape(data, 
+                    timevar = "fiscal_year", 
+                    idvar = c('region_name', 'district_name', 'disease'), 
+                    direction = 'wide')
+    return(data)
   })
   
   underSixtyData <- reactive({
@@ -272,18 +281,6 @@ output$districtLinegraph <- renderPlot({
 
 output$districtHistoryTable <- renderTable(districtHistoryTableData(), 
                                            include.rownames = FALSE)
-
-
-# sidebarPanel(
-#   checkboxGroupInput("region", "Select Regions", 
-#                      c("Region1", "Region2", "Region3"), 
-#                      selected = "Region1"), 
-#   checkboxGroupInput("district", "Select Districts", 
-#                      c("District1", "District2", "District3"), 
-#                      selected = "District1"), 
-#   
-# )
-
 
 })
 
