@@ -218,6 +218,10 @@ output$uiDistrict <- renderUI({
 
 ## Main panel, District Trends tab ##################################################################
 
+output$districtTitle <- renderText({
+  input$country
+})
+
 output$testText <- renderText({
   input$districtButton
   isolate(input$region)

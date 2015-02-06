@@ -68,7 +68,9 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                             )
                             ), 
                    tabPanel("District-Trends", 
-                            h3("Coming soon"), 
+                            titlePanel(
+                              textOutput("districtTitle")
+                              ), 
                             
                             sidebarPanel(
                               
