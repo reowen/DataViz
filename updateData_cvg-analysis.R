@@ -1,5 +1,5 @@
 
-library(ggplot2)
+# library(ggplot2)
 # library(plyr)
 
 source('C:\\Users\\reowen\\Documents\\Coding\\DataViz\\cvg_analysis.R')
@@ -23,6 +23,8 @@ district['cvg_category_all'] <- with(district, ifelse((prg_cvg_all > 0 & prg_cvg
                                                       ifelse((prg_cvg_all >= 0.6 & prg_cvg_all < 0.8), "(2) 60 to 80 percent", 
                                                              ifelse((prg_cvg_all >= 0.8 & prg_cvg_all <= 1), "(3) 80 to 100 percent", 
                                                                     "(4) Over 100 percent"))))
+
+district["region_district"] <- paste(as.character(district$region_name), "-", as.character(district$district_name))
 
 # region <- ddply(district, c('country_name', 'region_name', 'disease', 'fiscal_year'), summarize, 
 #                 total_treated = sum(prg_cvg > 0, na.rm=TRUE),

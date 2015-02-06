@@ -202,8 +202,9 @@ output$uiRegion <- renderUI({
     return(NULL)
   }
   regions <- unique(as.character(district[district$country_name == input$country, "region_name"]))
-  radioButtons("region", "Select Regions", 
-               regions)
+#   regions <- order(regions)
+  checkboxGroupInput("region", "Select Regions", 
+                     regions)
 })
 
 output$uiDistrict <- renderUI({
@@ -211,7 +212,8 @@ output$uiDistrict <- renderUI({
     return(NULL)
   }
   districts <- unique(as.character(district[district$country_name == input$country & 
-                                              district$region_name == input$region, "district_name"]))
+                                              district$region_name %in% input$region, "region_district"]))
+#   districts <- order(districts)
   checkboxGroupInput("district", "Select Districts", 
                      districts)
 })
@@ -220,6 +222,15 @@ output$uiDistrict <- renderUI({
 
 output$districtTitle <- renderText({
   input$country
+})
+
+output$districtTabIntro <- renderUI({
+  input$districtButton
+  if(is.null(isolate(input$district))){
+    h4("Select regions, then districts, and click submit to view a graph.")
+  } else {
+    return(NULL)
+  }
 })
 
 output$testText <- renderText({
