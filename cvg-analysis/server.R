@@ -43,6 +43,11 @@ shinyServer(function(input, output) {
   countryTableData <- reactive({
     data <- countryHistoryData()
     data <- data[with(data, order(country_name, disease, fiscal_year)), ]
+    
+    colnames(data) <- c("", "Disease", "Fiscal year", "Lowest coverage", "Highest coverage", 
+                        "Median coverage", "Average coverage", "Std Deviation", "# Districts Treated", 
+                        "# Endemic districts")
+    
     return(data)
   })
   
@@ -84,13 +89,23 @@ shinyServer(function(input, output) {
     data <- data[(data$region_district %in% isolate(input$district) & 
                     data$disease %in% input$disease & !is.na(data$prg_cvg)), 
                  c("region_name", "district_name", "disease", "fiscal_year", "prg_cvg")]
+    
+    colnames(data) <- c("Region", "District", "Disease", "fiscal_year", "Program coverage")
+    
     data <- reshape(data, 
                     timevar = "fiscal_year", 
-                    idvar = c('region_name', 'district_name', 'disease'), 
+                    idvar = c('Region', 'District', 'Disease'), 
                     direction = 'wide')
     return(data)
   })
   
+  setDistrictColnames <- function(data){
+    data <- data[with(data, order(disease, region_name, prg_cvg)), ]
+    colnames(data) <- c("Disease", "Region", "District", "Program coverage", "Times treated", "Average program coverage", 
+                        "Lowest historical program coverage", "Highest historical program coverage")
+    return(data)
+  }
+
   underSixtyData <- reactive({
     cols <- c('disease', 'region_name', 'district_name', 'prg_cvg', 'times_treated', 
               'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
@@ -98,7 +113,8 @@ shinyServer(function(input, output) {
     data <- data[!is.na(data$region_name), ]
     
     if(nrow(data) > 0){
-      return(data[with(data, order(disease, region_name, prg_cvg)), ])
+      data <- setDistrictColnames(data)
+      return(data)
     } else {
       return(NULL)
     }
@@ -112,7 +128,8 @@ shinyServer(function(input, output) {
     data <- data[!is.na(data$region_name), ]
     
     if(nrow(data) > 0){
-      return(data[with(data, order(disease, region_name, prg_cvg)), ])
+      data <- setDistrictColnames(data)
+      return(data)
     } else {
       return(NULL)
     }
@@ -126,7 +143,8 @@ shinyServer(function(input, output) {
     data <- data[!is.na(data$region_name), ]
     
     if(nrow(data) > 0){
-      return(data[with(data, order(disease, region_name, prg_cvg)), ])
+      data <- setDistrictColnames(data)
+      return(data)
     } else {
       return(NULL)
     }
@@ -140,7 +158,8 @@ shinyServer(function(input, output) {
     data <- data[!is.na(data$region_name), ]
     
     if(nrow(data) > 0){
-      return(data[with(data, order(disease, region_name, prg_cvg)), ])
+      data <- setDistrictColnames(data)
+      return(data)
     } else {
       return(NULL)
     }
