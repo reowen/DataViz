@@ -44,7 +44,6 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                               br(),
                               
                               fluidRow(
-                                h4("Districts with Program Coverage Under 60%"),
                                 tableOutput("districtUnder60")
                               ), 
                               
@@ -52,7 +51,10 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                               br(),
                               
                               fluidRow(
-                                h4("Districts with Program Coverage 60% - 80%"),
+                                h3(textOutput("districtHeader"))
+                                ),
+                              
+                              fluidRow(
                                 tableOutput("district60to80")
                               ),    
                               
@@ -60,7 +62,6 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                               br(),
                               
                               fluidRow(
-                                h4("Districts with Program Coverage 80% - 100%"),
                                 tableOutput("district80to100")
                               ),    
                               
@@ -68,7 +69,6 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                               br(),
                               
                               fluidRow(
-                                h4("Districts with Program Coverage Over 100%"),
                                 tableOutput("district100plus")
                               )  
                             )

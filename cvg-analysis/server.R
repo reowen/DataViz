@@ -3,7 +3,11 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 
+ENVISION = c("Benin", "Cameroon", "Democratic Republic of Congo", "Ethiopia", "Guinea", "Haiti", "Indonesia", 
+             "Mali", "Mozambique", "Nepal", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda")
+
 country <- read.csv("data/country.csv")
+country <- country[country$country_name %in% ENVISION, ]
 # region <- read.csv("data/region.csv")
 district <- read.csv("data/district.csv")
 
@@ -92,7 +96,13 @@ shinyServer(function(input, output) {
               'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
     data <- districtData()[(districtData()[, 'prg_cvg'] < 0.6), cols]
     data <- data[!is.na(data$region_name), ]
-    return(data[with(data, order(disease, region_name, prg_cvg)), ])
+    
+    if(nrow(data) > 0){
+      return(data[with(data, order(disease, region_name, prg_cvg)), ])
+    } else {
+      return(NULL)
+    }
+    
   })
   
   sixtyEightyData <- reactive({
@@ -100,7 +110,13 @@ shinyServer(function(input, output) {
               'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
     data <- districtData()[(districtData()[, 'prg_cvg'] >= 0.6 & districtData()[, 'prg_cvg'] < 0.8), cols]
     data <- data[!is.na(data$region_name), ]
-    return(data[with(data, order(disease, region_name, prg_cvg)), ])
+    
+    if(nrow(data) > 0){
+      return(data[with(data, order(disease, region_name, prg_cvg)), ])
+    } else {
+      return(NULL)
+    }
+    
   })
   
   eighty100Data <- reactive({
@@ -108,7 +124,13 @@ shinyServer(function(input, output) {
               'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
     data <- districtData()[(districtData()[, 'prg_cvg'] >= 0.8 & districtData()[, 'prg_cvg'] <= 1), cols]
     data <- data[!is.na(data$region_name), ]
-    return(data[with(data, order(disease, region_name, prg_cvg)), ])
+    
+    if(nrow(data) > 0){
+      return(data[with(data, order(disease, region_name, prg_cvg)), ])
+    } else {
+      return(NULL)
+    }
+
   })
   
   hundredPlusData <- reactive({
@@ -116,7 +138,13 @@ shinyServer(function(input, output) {
               'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
     data <- districtData()[(districtData()[, 'prg_cvg'] > 1), cols]
     data <- data[!is.na(data$region_name), ]
-    return(data[with(data, order(disease, region_name, prg_cvg)), ])
+    
+    if(nrow(data) > 0){
+      return(data[with(data, order(disease, region_name, prg_cvg)), ])
+    } else {
+      return(NULL)
+    }
+
   })
   
 ## Sidebar, main tab ######################################################################################
@@ -129,11 +157,10 @@ shinyServer(function(input, output) {
                                "All support" = "all"), 
                    selected = "usaid", 
                    inline = TRUE),
-      
+  
       radioButtons("country", 
                    label = "Choose a country",
-                   choices = levels(country$country_name),
-                   selected = "Benin"),
+                   choices = unique(as.character(country$country_name))),
       
       checkboxGroupInput("disease", "Choose applicable diseases:", 
                          c("LF" = "LF", 
@@ -209,17 +236,28 @@ shinyServer(function(input, output) {
     if(length(pList) > 0){do.call("grid.arrange", c(pList, ncol=1))}
   })
 
-  
+  output$districtHeader <- renderText({
+    paste("District-level Program Coverage: FY", input$year, sep="")
+  })  
+
   output$districtUnder60 <- renderTable(underSixtyData(), 
+                                        caption = "Districts with Program Coverage under 60%", 
+                                        caption.placement = "top",
                                         include.rownames = FALSE)
 
   output$district60to80 <- renderTable(sixtyEightyData(), 
+                                       caption = "Districts with Program Coverage 60% - 80%", 
+                                       caption.placement = "top",
                                        include.rownames=FALSE)
   
   output$district80to100 <- renderTable(eighty100Data(),
+                                        caption = "Districts with Program Coverage 80% - 100%", 
+                                        caption.placement = "top",
                                         include.rownames=FALSE)
   
   output$district100plus <- renderTable(hundredPlusData(),
+                                        caption = "Districts with Program Coverage Over 100%", 
+                                        caption.placement = "top",
                                         include.rownames=FALSE)
 
 
