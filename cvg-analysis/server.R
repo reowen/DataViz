@@ -96,7 +96,13 @@ shinyServer(function(input, output) {
                     timevar = "fiscal_year", 
                     idvar = c('Region', 'District', 'Disease'), 
                     direction = 'wide')
-    return(data)
+    
+    if(nrow(data) > 0){
+      return(data)
+    } else {
+      return(NULL)
+    }
+    
   })
   
   setDistrictColnames <- function(data){
