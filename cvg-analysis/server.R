@@ -1,7 +1,7 @@
 library(shiny)
 library(ggplot2)
-library(grid)
 library(gridExtra)
+library(knitr)
 
 ENVISION = c("Benin", "Cameroon", "Democratic Republic of Congo", "Ethiopia", "Guinea", "Haiti", "Indonesia", 
              "Mali", "Mozambique", "Nepal", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda")
@@ -350,6 +350,28 @@ output$districtLinegraph <- renderPlot({
 
 output$districtHistoryTable <- renderTable(districtHistoryTableData(), 
                                            include.rownames = FALSE)
+
+### Exports to PDFs ########################################################################
+
+# output$countryPDF <- downloadHandler(
+#   filename = "report.pdf", 
+#   
+#   content = function(file){
+#     # generate PDF
+#     knit2pdf("report.Rnw")
+#     
+#     # copy PDF to 'file'
+#     file.copy("report.pdf", file)
+#     
+#     # delete generated files
+#     file.remove("report.pdf", "report.tex", 
+#                 "report.aux", "report.log")
+#     
+#     # delete folder with plots
+#     unlink("figure", recursive = TRUE)
+#   }, 
+#   contentType = "application/pdf"
+# )
 
 })
 
