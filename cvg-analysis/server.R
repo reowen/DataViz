@@ -245,6 +245,11 @@ shinyServer(function(input, output) {
   })
 
   output$stackedBars <- renderPlot({      
+    # Sets specific colors for each coverage category
+    fillPalette <- c("(1) Under 60 percent"="#999999", 
+                     "(2) 60 to 80 percent"="#E69F00", 
+                     "(3) 80 to 100 percent"="#56B4E9", 
+                     "(4) Over 100 percent"="#009E73")
     data <- districtData()[!is.na(districtData()[,'cvg_category']), ]
     pList <- list()
     for(d in input$disease){
@@ -255,7 +260,8 @@ shinyServer(function(input, output) {
           labs(title = paste(d, input$year),
                x = 'Region Name', 
                y = 'Number of treated districts') + 
-          scale_fill_discrete(name="Coverage\nCategory")
+          scale_fill_discrete(name="Coverage\nCategory") +
+          scale_fill_manual(values=fillPalette) # manually set colors as mapped in fillPalette object
       }
     }
     if(length(pList) > 0){do.call("grid.arrange", c(pList, ncol=1))}
