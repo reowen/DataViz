@@ -10,7 +10,7 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                                        ".shiny-output-error:before { visibility: hidden; }"
                             ),
                             
-                            downloadButton("countryPDF", "Export to PDF"),
+#                             downloadButton("countryPDF", "Export to PDF"),
                             
                             mainPanel(
                               fluidRow(
