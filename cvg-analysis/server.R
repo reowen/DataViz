@@ -1,10 +1,6 @@
 library(shiny)
 library(ggplot2)
 library(gridExtra)
-library(knitr)
-
-ENVISION = c("Benin", "Cameroon", "Democratic Republic of Congo", "Ethiopia", "Guinea", "Haiti", "Indonesia", 
-             "Mali", "Mozambique", "Nepal", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda")
 
 country <- read.csv("data/country.csv")
 district <- read.csv("data/district.csv")
