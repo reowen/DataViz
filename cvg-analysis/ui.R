@@ -10,7 +10,7 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                                        ".shiny-output-error:before { visibility: hidden; }"
                             ),
                             
-#                             downloadButton("countryPDF", "Export to PDF"),
+                            
                             
                             mainPanel(
                               fluidRow(
@@ -23,6 +23,8 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                               
                               fluidRow(
                                 h3("Country Summary Table"),
+                                downloadButton("countryData", "Export Country Summary"),
+                                br(), br(),
                                 tableOutput("tableHistory")
                               ),  
                               
@@ -53,7 +55,8 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                               br(),
                               
                               fluidRow(
-                                h3(textOutput("districtHeader"))
+                                h3(textOutput("districtHeader")), 
+                                downloadButton("districtData", "Export All District Data")
                                 ),
                               
                               fluidRow(
@@ -104,6 +107,8 @@ shinyUI(navbarPage("Coverage Analysis Tool",
                                                plotOutput("districtLinegraph")),
                               
                               conditionalPanel("input.district != null", 
+                                               uiOutput("districtTrendButton"),
+                                               br(), br(),
                                                tableOutput("districtHistoryTable"))
                               )
                             )

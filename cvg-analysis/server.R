@@ -7,7 +7,7 @@ ENVISION = c("Benin", "Cameroon", "Democratic Republic of Congo", "Ethiopia", "G
              "Mali", "Mozambique", "Nepal", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda")
 
 country <- read.csv("data/country.csv")
-country <- country[country$country_name %in% ENVISION, ]
+# country <- country[country$country_name %in% ENVISION, ]
 # region <- read.csv("data/region.csv")
 district <- read.csv("data/district.csv")
 
@@ -44,7 +44,7 @@ shinyServer(function(input, output) {
     data <- countryHistoryData()
     data <- data[with(data, order(country_name, disease, fiscal_year)), ]
     
-    colnames(data) <- c("", "Disease", "Fiscal year", "Lowest coverage", "Highest coverage", 
+    colnames(data) <- c("Country", "Disease", "Fiscal year", "Lowest coverage", "Highest coverage", 
                         "Median coverage", "Average coverage", "Std Deviation", "# Districts Treated", 
                         "# Endemic districts")
     
@@ -353,25 +353,43 @@ output$districtHistoryTable <- renderTable(districtHistoryTableData(),
 
 ### Exports to PDFs ########################################################################
 
-# output$countryPDF <- downloadHandler(
-#   filename = "report.pdf", 
-#   
-#   content = function(file){
-#     # generate PDF
-#     knit2pdf("report.Rnw")
-#     
-#     # copy PDF to 'file'
-#     file.copy("report.pdf", file)
-#     
-#     # delete generated files
-#     file.remove("report.pdf", "report.tex", 
-#                 "report.aux", "report.log")
-#     
-#     # delete folder with plots
-#     unlink("figure", recursive = TRUE)
-#   }, 
-#   contentType = "application/pdf"
-# )
+output$countryData <- downloadHandler(
+  filename = function(){
+    paste(input$country, '-summary', '.csv', sep='')
+  }, 
+  content = function(file){
+    write.csv(countryTableData(), file)
+  }
+  )
+
+output$districtData <- downloadHandler(
+  filename = function(){
+    paste(input$country, '-', input$year, '-district', '.csv', sep='')
+  }, 
+  content = function(file){
+    cols <- c('disease', 'country_name','region_name', 'district_name', 'prg_cvg', 'times_treated', 
+              'avg_hist_cvg', 'min_prg_cvg', 'max_prg_cvg')
+    write.csv(districtData()[, cols], file)
+  }
+)
+
+output$districtTrendButton <- renderUI({
+  input$districtButton
+  if(is.null(isolate(input$district))){
+    return(NULL)
+  } else {
+    downloadButton("districtTrendData", "Export Data")
+  }
+})
+  
+output$districtTrendData <- downloadHandler(
+  filename = function(){
+    paste(input$country, '-district_trends.csv', sep='')
+  }, 
+  content = function(file){
+    write.csv(districtHistoryTableData(), file)
+  }
+)
 
 })
 
