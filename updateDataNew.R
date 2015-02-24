@@ -1,9 +1,20 @@
-library(RMySQL)
-library(plyr)
 
+# check if required packages installed, if not, install them
+required_packages <- c("shiny", "ggplot2", "gridExtra", "plyr", "RMySQL")
+for(p in required_packages){
+  if(p %in% rownames(installed.packages()) == FALSE){
+    install.packages(p)
+  }
+}
+rm(required_packages, p)
+
+# set working directory to the directory where this script is saved
 script.dir <- dirname(sys.frame(1)$ofile)
 setwd(script.dir)
 rm(script.dir)
+
+library(RMySQL)
+library(plyr)
 
 con <- dbConnect(MySQL(), 
                  user="", password="", 
