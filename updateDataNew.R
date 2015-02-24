@@ -1,6 +1,10 @@
 library(RMySQL)
 library(plyr)
 
+script.dir <- dirname(sys.frame(1)$ofile)
+setwd(script.dir)
+rm(script.dir)
+
 con <- dbConnect(MySQL(), 
                  user="envision", password="envisionRead!C4eMfw", 
                  dbname="ntd", host="productionread.c6u52zchwjde.us-east-1.rds.amazonaws.com")
@@ -84,7 +88,7 @@ for(i in 1:length(vars)){
 }
 rm(vars, i)
 
-write.csv(country, 'C:\\Users\\reowen\\Documents\\Coding\\DataViz\\cvg-analysis\\data\\country.csv')
+write.csv(country, 'cvg-analysis\\data\\country.csv')
 
 # code the district dataset
 
@@ -153,6 +157,6 @@ district['cvg_category_all'] <- with(district, ifelse((prg_cvg_all > 0 & prg_cvg
 district["region_district"] <- paste(as.character(district$region_name), "-", as.character(district$district_name))
 
 
-write.csv(district, 'C:\\Users\\reowen\\Documents\\Coding\\DataViz\\cvg-analysis\\data\\district.csv')
+write.csv(district, 'cvg-analysis\\data\\district.csv')
 
 rm(country, district)

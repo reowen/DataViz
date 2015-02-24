@@ -7,7 +7,7 @@ ENVISION = c("Benin", "Cameroon", "Democratic Republic of Congo", "Ethiopia", "G
              "Mali", "Mozambique", "Nepal", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda")
 
 country <- read.csv("data/country.csv")
-# country <- country[country$country_name %in% ENVISION, ]
+country <- country[country$country_name %in% ENVISION, ]
 # region <- read.csv("data/region.csv")
 district <- read.csv("data/district.csv")
 
