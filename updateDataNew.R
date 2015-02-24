@@ -2,8 +2,8 @@ library(RMySQL)
 library(plyr)
 
 con <- dbConnect(MySQL(), 
-                 user="", password="", 
-                 dbname="", host="")
+                 user="envision", password="envisionRead!C4eMfw", 
+                 dbname="ntd", host="productionread.c6u52zchwjde.us-east-1.rds.amazonaws.com")
 
 rs <- dbSendQuery(con, 
                   "SELECT country_desc, region_desc, district_desc, disease, workbook_year, indicator, value_num 
