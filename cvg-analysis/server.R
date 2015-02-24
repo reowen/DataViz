@@ -1,14 +1,8 @@
 library(shiny)
 library(ggplot2)
 library(gridExtra)
-library(knitr)
-
-ENVISION = c("Benin", "Cameroon", "Democratic Republic of Congo", "Ethiopia", "Guinea", "Haiti", "Indonesia", 
-             "Mali", "Mozambique", "Nepal", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda")
 
 country <- read.csv("data/country.csv")
-country <- country[country$country_name %in% ENVISION, ]
-# region <- read.csv("data/region.csv")
 district <- read.csv("data/district.csv")
 
 country_all_cols <- c("country_name", "disease", "fiscal_year", "min_cvg_all", "max_cvg_all", "median_cvg_all", 

@@ -99,8 +99,6 @@ for(i in 1:length(vars)){
 }
 rm(vars, i)
 
-write.csv(country, 'cvg-analysis\\data\\country.csv')
-
 # code the district dataset
 
 # district2 <- district
@@ -167,7 +165,15 @@ district['cvg_category_all'] <- with(district, ifelse((prg_cvg_all > 0 & prg_cvg
 
 district["region_district"] <- paste(as.character(district$region_name), "-", as.character(district$district_name))
 
+# restrict to ENVISION only
+ENVISION = c("Benin", "Cameroon", "Democratic Republic of Congo", "Ethiopia", "Guinea", "Haiti", "Indonesia", 
+             "Mali", "Mozambique", "Nepal", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda")
 
+country <- country[country$country_name %in% ENVISION, ]
+district <- district[district$district_name %in% ENVISION, ]
+
+# write to csv
+write.csv(country, 'cvg-analysis\\data\\country.csv')
 write.csv(district, 'cvg-analysis\\data\\district.csv')
 
-rm(country, district)
+rm(country, district, ENVISION)
