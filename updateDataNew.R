@@ -1,6 +1,10 @@
 library(RMySQL)
 library(plyr)
 
+script.dir <- dirname(sys.frame(1)$ofile)
+setwd(script.dir)
+rm(script.dir)
+
 con <- dbConnect(MySQL(), 
                  user="", password="", 
                  dbname="", host="")
