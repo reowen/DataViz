@@ -20,12 +20,30 @@ con <- dbConnect(MySQL(),
                  user="", password="", 
                  dbname="", host="")
 
-rs <- dbSendQuery(con, 
-                  "SELECT country_desc, region_desc, district_desc, disease, workbook_year, indicator, value_num 
-                  FROM reporting_values 
-                  WHERE most_recent_submission_f = 1 
-                  AND indicator IN ('program_coverage_all', 'program_coverage_usaid', 'ci_diseasedist_dist_endmc_above_treat_thrshd', 'population_at_risk') 
-                  AND reporting_period <> 'work_planning'")
+query <- 
+"SELECT country_name, region_name, district_name, disease, fiscal_year, 
+MAX(prg_cvg) AS 'prg_cvg', MAX(prg_cvg_all) AS 'prg_cvg_all', 
+MAX(endemic) AS 'endemic', MAX(pop_at_risk) AS 'pop_at_risk'
+FROM
+(SELECT 
+ country_desc AS 'country_name', 
+ region_desc AS 'region_name', 
+ district_desc AS 'district_name', 
+ disease, 
+ workbook_year AS 'fiscal_year', 
+ CASE WHEN indicator = 'program_coverage_usaid' then value_num END AS prg_cvg, 
+ CASE WHEN indicator = 'program_coverage_all' then value_num END AS prg_cvg_all,
+ CASE WHEN indicator = 'ci_diseasedist_dist_endmc_above_treat_thrshd' then value_num END AS endemic,
+ CASE WHEN indicator = 'population_at_risk' then value_num END AS pop_at_risk
+ 
+ FROM reporting_values
+ WHERE most_recent_submission_f = 1 
+ AND indicator IN ('program_coverage_all', 'program_coverage_usaid', 'ci_diseasedist_dist_endmc_above_treat_thrshd', 'population_at_risk') 
+ AND reporting_period <> 'work_planning' AND disease <> 'at_least_one_ntd')x
+GROUP BY country_name, region_name, district_name, disease, fiscal_year;"
+
+rs <- dbSendQuery(con, query)
+rm(query)
 
 data <- dbFetch(rs, n = -1)
 check <- dbHasCompleted(rs)
@@ -34,28 +52,15 @@ dbClearResult(rs)
 dbDisconnect(con)
 rm(con, check, rs)
 
-data[!is.na(data$value_num) & data$value_num == 0, "value_num"] <- NA
-data <- data[data$disease != "at_least_one_ntd", ]
-district <- reshape(data, 
-                    timevar = 'indicator', 
-                    idvar = c('country_desc', 'region_desc', 'district_desc', 'disease', 'workbook_year'), 
-                    direction = 'wide')
-rm(data)
-
 # update diseases to match old names from cube (specific to this one app)
+district <- data
+rm(data)
 
 district[district$disease == 'lf', 'disease'] <- "LF"
 district[district$disease == 'oncho', 'disease'] <- "Oncho"
 district[district$disease == 'schisto', 'disease'] <- "Schisto"
 district[district$disease == 'sth', 'disease'] <- "STH"
 district[district$disease == 'trachoma', 'disease'] <- "Trachoma"
-
-# update column names to match those in app
-
-cols <- c('country_name', 'region_name', 'district_name', 'disease', 'fiscal_year', 
-          'endemic', 'pop_at_risk', 'prg_cvg_all', 'prg_cvg')
-for(i in 1:length(cols)){colnames(district)[i] <- cols[i]}
-rm(i, cols)
 
 # deal with quirk in NTDCP data entries
 
@@ -100,8 +105,6 @@ for(i in 1:length(vars)){
 rm(vars, i)
 
 # code the district dataset
-
-# district2 <- district
 
 keepcols <- c('country_name', 'region_name', 'district_name', 'disease', 'fiscal_year', 
               'prg_cvg_all', 'prg_cvg')
