@@ -34,7 +34,7 @@ dbClearResult(rs)
 dbDisconnect(con)
 rm(con, check, rs)
 
-data[data$value_num == 0, "value_num"] <- NA
+data[!is.na(data$value_num) & data$value_num == 0, "value_num"] <- NA
 data <- data[data$disease != "at_least_one_ntd", ]
 district <- reshape(data, 
                     timevar = 'indicator', 
@@ -170,7 +170,7 @@ ENVISION = c("Benin", "Cameroon", "Democratic Republic of Congo", "Ethiopia", "G
              "Mali", "Mozambique", "Nepal", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda")
 
 country <- country[country$country_name %in% ENVISION, ]
-district <- district[district$district_name %in% ENVISION, ]
+district <- district[district$country_name %in% ENVISION, ]
 
 # write to csv
 write.csv(country, 'cvg-analysis\\data\\country.csv')
