@@ -142,4 +142,4 @@ write.csv(data, 'disease-rpt/data/district.csv')
 
 
 dbDisconnect(con)
-rm(con, check, rs)
+rm(con, check, rs, c, y, years, countries)
