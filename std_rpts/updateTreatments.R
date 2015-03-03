@@ -82,5 +82,13 @@ dbClearResult(rs)
 dbDisconnect(con)
 rm(con, check, rs)
 
+
+# restrict to ENVISION only
+ENVISION = c("Benin", "Cameroon", "Democratic Republic of Congo", "Ethiopia", "Guinea", "Haiti", "Indonesia", 
+             "Mali", "Mozambique", "Nepal", "Nigeria", "Senegal", "Sierra Leone", "Tanzania", "Uganda")
+
+data <- data[data$country %in% ENVISION, ]
+
 write.csv(data, 'treatments\\data\\data.csv')
+rm(data, ENVISION)
 
