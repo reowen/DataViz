@@ -10,7 +10,7 @@ con <- dbConnect(MySQL(),
                  dbname="ntd", host="productionread.c6u52zchwjde.us-east-1.rds.amazonaws.com")
 
 query <- 
-  "SELECT country, disease, workbook_year, 
+  "SELECT country, disease, workbook_year, project,
 MAX(persons_treated_all) AS persons_treated_all,
 MAX(persons_treated_usaid) AS persons_treated_usaid, 
 MAX(districts_stop_mda) AS districts_stop_mda, 
@@ -20,7 +20,7 @@ MAX(pop_stop_mda) AS pop_stop_mda
 
 FROM
 (SELECT
-country_desc as 'country', disease, workbook_year, 
+country_desc as 'country', disease, workbook_year, project,
 CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
 CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
 CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
