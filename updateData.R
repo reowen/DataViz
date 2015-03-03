@@ -72,7 +72,7 @@ district[district$fiscal_year < 2012, 'prg_cvg_all'] <- apply(district[district$
                                                               function(x) max(x, na.rm=TRUE))
 
 for(c in cvg){
-  district[(is.nan(district[, c]) | is.infinite(district[,c])), c] <- NA
+  district[(is.nan(district[, c]) | is.infinite(district[,c]) | district[,c] == 0), c] <- NA
 }
 
 rm(cvg, c)
