@@ -46,5 +46,17 @@ dbClearResult(rs)
 dbDisconnect(con)
 rm(con, check, rs)
 
+data[data$workbook_year < 2012, "project"] <- "NTD Control Program"
+
+countries <- unique(data$country)
+years <- c(2012, 2013, 2014)
+for(c in countries){
+  for(y in years){
+    data[data$country == c & data$workbook_year == y & data$disease == "at_least_one_ntd", "project"] <- 
+      unique(data[data$country == c & data$workbook_year == y & data$disease != "at_least_one_ntd", "project"])
+  }
+}
+
+
 write.csv(data, 'disease-rpt/data/data.csv')
 rm(data)
