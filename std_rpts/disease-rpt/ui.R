@@ -15,11 +15,12 @@ shinyUI(fluidPage(
                    choices = c("USAID support" = "usaid", "All support" = "all"), 
                    selected = "usaid", 
                    inline = TRUE),
-      radioButtons("level", 
-                   label = "Select Report Level", 
-                   choices = c("District", "Region", "Country", "Project", "USAID portfolio"))
       selectInput("report", "Choose a Report:", 
                   choices = c("Disease persons", "Disease districts")),
+      radioButtons("level", 
+                   label = "Select Report Level", 
+                   choices = c("USAID portfolio", "Project", "Country", "Region", "District"))
+
       downloadButton('downloadData', 'Download')
     ),
     mainPanel(

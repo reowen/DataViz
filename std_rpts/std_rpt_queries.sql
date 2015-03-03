@@ -1,13 +1,76 @@
 
+select * from reporting_values_country where indicator = 'ci_districts_treated_usaid';
 
--- query for Disease persons/districts reports
+-- queries for Disease persons/districts reports
+
+-- district-level
+SELECT country, region, district, disease, workbook_year, project,
+MAX(persons_treated_all) AS persons_treated_all,
+MAX(persons_treated_usaid) AS persons_treated_usaid, 
+MAX(districts_stop_mda) AS districts_stop_mda, 
+MAX(districts_stop_mda_tra) AS districts_stop_mda_tra, 
+MAX(pop_stop_mda_tra) AS pop_stop_mda_tra,
+MAX(pop_stop_mda) AS pop_stop_mda, 
+MAX(districts_treated_usaid) AS districts_treated_usaid
+
+FROM
+(SELECT
+country_desc as 'country', region_desc as 'region', district_desc as 'district', disease, workbook_year, project,
+CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
+CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
+CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
+CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_f' THEN value_num END AS districts_stop_mda_tra,
+CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
+CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda, 
+CASE WHEN indicator = 'ci_districts_treated_usaid' THEN value_num END AS districts_treated_usaid
+
+FROM reporting_values
+WHERE most_recent_submission_f = 1 
+AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ci_achieved_crit_stop_dist_lev_mda_f', 
+'ci_achieved_crit_stop_dist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
+AND reporting_period <> 'work_planning')x
+GROUP BY country, region, district, disease, workbook_year
+ORDER BY country, region, district, disease, workbook_year;
+
+
+-- region-level
+SELECT country, region, disease, workbook_year, project,
+MAX(persons_treated_all) AS persons_treated_all,
+MAX(persons_treated_usaid) AS persons_treated_usaid, 
+MAX(districts_stop_mda) AS districts_stop_mda, 
+MAX(districts_stop_mda_tra) AS districts_stop_mda_tra, 
+MAX(pop_stop_mda_tra) AS pop_stop_mda_tra,
+MAX(pop_stop_mda) AS pop_stop_mda, 
+MAX(districts_treated_usaid) AS districts_treated_usaid
+
+FROM
+(SELECT
+country_desc as 'country', region_desc as 'region', disease, workbook_year, project,
+CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
+CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
+CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
+CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_f' THEN value_num END AS districts_stop_mda_tra,
+CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
+CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda, 
+CASE WHEN indicator = 'ci_districts_treated_usaid' THEN value_num END AS districts_treated_usaid
+
+FROM reporting_values_region
+WHERE most_recent_submission_f = 1 
+AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ci_achieved_crit_stop_dist_lev_mda_f', 
+'ci_achieved_crit_stop_dist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
+AND reporting_period <> 'work_planning')x
+GROUP BY country, region, disease, workbook_year
+ORDER BY country, region, disease, workbook_year;
+
+-- country-level
 SELECT country, disease, workbook_year, project,
 MAX(persons_treated_all) AS persons_treated_all,
 MAX(persons_treated_usaid) AS persons_treated_usaid, 
 MAX(districts_stop_mda) AS districts_stop_mda, 
 MAX(districts_stop_mda_tra) AS districts_stop_mda_tra, 
 MAX(pop_stop_mda_tra) AS pop_stop_mda_tra,
-MAX(pop_stop_mda) AS pop_stop_mda
+MAX(pop_stop_mda) AS pop_stop_mda, 
+MAX(districts_treated_usaid) AS districts_treated_usaid
 
 FROM
 (SELECT
@@ -17,12 +80,13 @@ CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_trea
 CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
 CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_f' THEN value_num END AS districts_stop_mda_tra,
 CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
-CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda
+CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda, 
+CASE WHEN indicator = 'ci_districts_treated_usaid' THEN value_num END AS districts_treated_usaid
 
 FROM reporting_values_country
 WHERE most_recent_submission_f = 1 
 AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ci_achieved_crit_stop_dist_lev_mda_f', 
-'ci_achieved_crit_stop_dist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num') 
+'ci_achieved_crit_stop_dist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
 AND reporting_period <> 'work_planning')x
 GROUP BY country, disease, workbook_year
 ORDER BY country, disease, workbook_year;
