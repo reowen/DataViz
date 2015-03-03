@@ -1,15 +1,34 @@
 
--- query for updateTreatments.R
-SELECT country_desc, region_desc, district_desc, disease, workbook_year, indicator, value_num 
+
+-- query for Disease persons/districts reports
+SELECT country, disease, workbook_year, 
+MAX(persons_treated_all) AS persons_treated_all,
+MAX(persons_treated_usaid) AS persons_treated_usaid, 
+MAX(districts_stop_mda) AS districts_stop_mda, 
+MAX(districts_stop_mda_tra) AS districts_stop_mda_tra, 
+MAX(pop_stop_mda_tra) AS pop_stop_mda_tra,
+MAX(pop_stop_mda) AS pop_stop_mda
+
+FROM
+(SELECT
+country_desc as 'country', disease, workbook_year, 
+CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
+CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
+CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
+CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_f' THEN value_num END AS districts_stop_mda_tra,
+CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
+CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda
+
 FROM reporting_values_country
 WHERE most_recent_submission_f = 1 
-AND indicator IN ('ppl_targeted_all_num', 'ppl_targeted_usaid_num', 'sac_target_usaid_num', 'r1_ppl_targeted_all_num', 'r1_ppl_targeted_usaid_num', 
-'r2_ppl_targeted_all_num', 'r2_ppl_targeted_usaid_num', 'r1_sac_target_usaid_num', 'r2_sac_target_usaid_num', 'ppl_treated_all_num', 
-'ppl_treated_usaid_num', 'sac_treated_all_num', 'sac_treated_usaid_num', 'r1_ppl_treated_all_num', 'r1_ppl_treated_usaid_num', 
-'r2_ppl_treated_all_num', 'r2_ppl_treated_usaid_num', 'r1_sac_treated_all_num', 'r1_sac_treated_usaid_num', 'r2_sac_treated_all_num', 
-'r2_sac_treated_usaid_num', 'population_at_risk', 'sac_population_requiring_mda') 
-AND reporting_period <> 'work_planning' AND disease <> 'at_least_one_ntd';
+AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ci_achieved_crit_stop_dist_lev_mda_f', 
+'ci_achieved_crit_stop_dist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num') 
+AND reporting_period <> 'work_planning')x
+GROUP BY country, disease, workbook_year
+ORDER BY country, disease, workbook_year;
 
+
+-- query for updateTreatments.R
 SELECT country, disease, workbook_year, 
 MAX(persons_targeted_all) AS persons_targeted_all, 
 MAX(persons_targeted_usaid) AS persons_targeted_usaid, 
