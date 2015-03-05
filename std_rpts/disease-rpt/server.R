@@ -138,4 +138,15 @@ output$table <- renderTable({setReport()}, include.rownames=FALSE)
     return(melt(data, id.vars = setID()))
   })
 
+## Download Handlers #########################################################################################
+
+output$exportData <- downloadHandler(
+  filename = function(){
+    paste(input$level, " - ", input$report, '.csv', sep='')
+  }, 
+  content = function(file){
+    write.csv(setReport(), file)
+  }
+)
+
 })

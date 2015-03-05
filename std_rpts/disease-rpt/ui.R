@@ -1,6 +1,7 @@
 library(shiny)
 
-shinyUI(fluidPage(
+shinyUI(
+  fluidPage(
   #   tags$style(type="text/css",
   #              ".shiny-output-error { visibility: hidden; }",
   #              ".shiny-output-error:before { visibility: hidden; }"
@@ -13,29 +14,32 @@ shinyUI(fluidPage(
                            label = "Funding", 
                            choices = c("USAID support" = "usaid"), 
                            selected = "usaid", 
-                           inline = TRUE),
+                           inline = TRUE),           
+           
            selectInput("report", "Choose a Report:", 
                        c("Disease persons" = "persons", 
                          "Disease districts" = "districts")),
-           radioButtons("disease", label = "Select a Disease", 
+           
+           selectInput("disease", "Select a Disease", 
                         c("LF" = "lf", "Oncho" = "oncho", "Schisto" = "schisto", 
                           "STH" = "sth", "Trachoma" = "trachoma")),
-           radioButtons("level", 
-                        label = "Select Report Level", 
-                        choices = c("USAID portfolio", "Project", "Country", "Region", "District"))), 
-    
-    column(3, uiOutput("selectProject"), 
-           uiOutput("selectCountry")), 
-    
-    column(3, uiOutput("selectRegion")), 
-    
-    column(3, uiOutput("selectDistrict"))
-  ),
-  
-  br(), hr(),
-  fluidRow(
-    plotOutput('plot'),
-    tableOutput('table')
-    )
+           
+           selectInput("level", "Select Report Level", 
+                       c("USAID portfolio", "Project", "Country", "Region", "District")),
+           
+           uiOutput("selectProject"), 
+           uiOutput("selectCountry"),
+           uiOutput("selectRegion"), 
+           uiOutput("selectDistrict")
+           ),
+    column(9, 
+           plotOutput('plot'),
+           fluidRow(
+             downloadButton("exportData", "Download Data"),
+             br(), br(),
+             tableOutput('table')
+             )
+           )
+  )
   )
 )
