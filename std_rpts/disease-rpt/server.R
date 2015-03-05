@@ -37,7 +37,8 @@ output$selectRegion <- renderUI({
 
 output$selectDistrict <- renderUI ({
   if(input$level == "District" & !is.null(input$country) & !is.null(input$region)){
-    districtList <- unique(as.character(district[district$region %in% input$region, "district"]))
+    districtList <- unique(as.character(district[district$region %in% input$region & 
+                                                   district$country %in% input$country, "district"]))
     checkboxGroupInput("district", "Choose District(s):", 
                        choices = districtList)
   } else { return(NULL) }  
@@ -86,6 +87,27 @@ output$table <- renderTable({setReport()}, include.rownames=FALSE)
       if(input$report == "districts"){data <- data[, c("country", "disease", "workbook_year", dist_col)]}
       data <- data[(data$disease %in% input$disease & data$country %in% input$country), ]
     }
+    if(input$level == "Region"){
+      data <- region
+      if(input$report == "persons"){data <- data[, c("country", "region", "disease", "workbook_year", persons_col)]}
+      if(input$report == "districts"){data <- data[, c("country", "region", "disease", "workbook_year", dist_col)]}
+      data <- data[(data$disease %in% input$disease & 
+                      data$country %in% input$country &
+                      data$region %in% input$region), ]
+      
+    }
+    if(input$level == "District"){
+      data <- district
+      if(input$report == "persons"){data <- data[, c("country", "region", "district", 
+                                                     "disease", "workbook_year", persons_col)]}
+      if(input$report == "districts"){data <- data[, c("country", "region", "district", 
+                                                       "disease", "workbook_year", dist_col)]}
+      data <- data[(data$disease %in% input$disease & 
+                      data$country %in% input$country &
+                      data$region %in% input$region & 
+                      data$district %in% input$district), ]
+      
+    }
     
     return(data)
   })
@@ -99,6 +121,12 @@ output$table <- renderTable({setReport()}, include.rownames=FALSE)
    }
    if(input$level == "Country") {
      return(c("country", "disease", "workbook_year"))
+   }
+   if(input$level == "Region") {
+     return(c("country", "region", "disease", "workbook_year"))
+   }
+   if(input$level == "District") {
+     return(c("country", "region", "district", "disease", "workbook_year"))
    }
  })
 

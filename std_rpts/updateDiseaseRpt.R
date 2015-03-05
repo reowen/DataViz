@@ -10,6 +10,7 @@ con <- dbConnect(MySQL(),
                  user="envision", password="envisionRead!C4eMfw", 
                  dbname="ntd", host="productionread.c6u52zchwjde.us-east-1.rds.amazonaws.com")
 
+# country-level query
 query <- 
   "SELECT country, disease, workbook_year, project,
 MAX(persons_treated_all) AS persons_treated_all,
@@ -26,15 +27,15 @@ country_desc as 'country', disease, workbook_year, project,
 CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
 CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
 CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
-CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_f' THEN value_num END AS districts_stop_mda_tra,
-CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
+CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS districts_stop_mda_tra,
+CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
 CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda, 
 CASE WHEN indicator = 'ci_districts_treated_usaid' THEN value_num END AS districts_treated_usaid
 
 FROM reporting_values_country
 WHERE most_recent_submission_f = 1 
-AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ci_achieved_crit_stop_dist_lev_mda_f', 
-'ci_achieved_crit_stop_dist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
+AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 
+'uig_subdist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
 AND reporting_period <> 'work_planning')x
 GROUP BY country, disease, workbook_year
 ORDER BY country, disease, workbook_year;"
@@ -58,10 +59,20 @@ for(c in countries){
   }
 }
 
-# data[data$disease == "trachoma"]
+# update districts stop-MDA trachoma flag
+data[data$districts_stop_mda_tra > 0 & !is.na(data$districts_stop_mda_tra), "districts_stop_mda_tra"] <- 1
+
+# merge trachoma stop-MDA (districts) into same column as other diseases
+data[data$disease == "trachoma", "districts_stop_mda"] <- data[data$disease == "trachoma", "districts_stop_mda_tra"]
+
+# merge trachoma stop-MDA (pop) into same column as other diseases
+data[data$disease == "trachoma", "pop_stop_mda"] <- data[data$disease == "trachoma", "pop_stop_mda_tra"]
+
+# write country-level dataset to csv
 write.csv(data, 'disease-rpt/data/country.csv')
 
 
+# aggregate data by project
 project <- ddply(data, c('project', 'disease', 'workbook_year'), summarize, 
                  persons_treated_all = sum(persons_treated_all), 
                  persons_treated_usaid = sum(persons_treated_usaid), 
@@ -73,6 +84,7 @@ project <- ddply(data, c('project', 'disease', 'workbook_year'), summarize,
 
 data <- data[data$persons_treated_usaid > 0, ]
 
+# aggregate data by portfolio
 portfolio <- ddply(data, c('disease', 'workbook_year'), summarize, 
                    persons_treated_usaid = sum(persons_treated_usaid), 
                    districts_treated_usaid = sum(districts_treated_usaid), 
@@ -81,7 +93,7 @@ portfolio <- ddply(data, c('disease', 'workbook_year'), summarize,
 
 write.csv(project, 'disease-rpt/data/project.csv')  
 write.csv(portfolio, 'disease-rpt/data/portfolio.csv') 
-# rm(data, project, portfolio)
+rm(data, project, portfolio)
 
 # region-level SQL query
 
@@ -101,15 +113,15 @@ country_desc as 'country', region_desc as 'region', disease, workbook_year, proj
 CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
 CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
 CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
-CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_f' THEN value_num END AS districts_stop_mda_tra,
-CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
+CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS districts_stop_mda_tra,
+CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
 CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda, 
 CASE WHEN indicator = 'ci_districts_treated_usaid' THEN value_num END AS districts_treated_usaid
 
 FROM reporting_values_region
 WHERE most_recent_submission_f = 1 
-AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ci_achieved_crit_stop_dist_lev_mda_f', 
-'ci_achieved_crit_stop_dist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
+AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'uig_subdist_lev_mda_pop', 
+'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
 AND reporting_period <> 'work_planning')x
 GROUP BY country, region, disease, workbook_year
 ORDER BY country, region, disease, workbook_year;"
@@ -121,6 +133,16 @@ data <- dbFetch(rs, n = -1)
 check <- dbHasCompleted(rs)
 dbClearResult(rs)
 
+# update districts stop-MDA trachoma flag
+data[data$districts_stop_mda_tra > 0 & !is.na(data$districts_stop_mda_tra), "districts_stop_mda_tra"] <- 1
+
+# merge trachoma stop-MDA (districts) into same column as other diseases
+data[data$disease == "trachoma", "districts_stop_mda"] <- data[data$disease == "trachoma", "districts_stop_mda_tra"]
+
+# merge trachoma stop-MDA (pop) into same column as other diseases
+data[data$disease == "trachoma", "pop_stop_mda"] <- data[data$disease == "trachoma", "pop_stop_mda_tra"]
+
+# write region-level data to csv
 write.csv(data, 'disease-rpt/data/region.csv')
 rm(data)
 
@@ -143,15 +165,15 @@ country_desc as 'country', region_desc as 'region', district_desc as 'district',
 CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
 CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
 CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
-CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_f' THEN value_num END AS districts_stop_mda_tra,
-CASE WHEN indicator = 'ci_achieved_crit_stop_dist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
+CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS districts_stop_mda_tra,
+CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
 CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda, 
 CASE WHEN indicator = 'ci_districts_treated_usaid' THEN value_num END AS districts_treated_usaid
 
 FROM reporting_values
 WHERE most_recent_submission_f = 1 
-AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ci_achieved_crit_stop_dist_lev_mda_f', 
-'ci_achieved_crit_stop_dist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
+AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'uig_subdist_lev_mda_pop',  
+'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
 AND reporting_period <> 'work_planning')x
 GROUP BY country, region, district, disease, workbook_year;"
 
@@ -162,9 +184,18 @@ data <- dbFetch(rs, n = -1)
 check <- dbHasCompleted(rs)
 dbClearResult(rs)
 
+# update districts stop-MDA trachoma flag
+data[data$districts_stop_mda_tra > 0 & !is.na(data$districts_stop_mda_tra), "districts_stop_mda_tra"] <- 1
+
+# merge trachoma stop-MDA (districts) into same column as other diseases
+data[data$disease == "trachoma", "districts_stop_mda"] <- data[data$disease == "trachoma", "districts_stop_mda_tra"]
+
+# merge trachoma stop-MDA (pop) into same column as other diseases
+data[data$disease == "trachoma", "pop_stop_mda"] <- data[data$disease == "trachoma", "pop_stop_mda_tra"]
+
+# write district-level data to csv
 write.csv(data, 'disease-rpt/data/district.csv')
 rm(data)
-
 
 
 dbDisconnect(con)
