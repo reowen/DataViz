@@ -27,15 +27,15 @@ country_desc as 'country', disease, workbook_year, project,
 CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
 CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
 CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
-CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS districts_stop_mda_tra,
-CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
+CASE WHEN indicator = 'achieved_uig_subdist_lev_mda_pop' THEN value_num END AS districts_stop_mda_tra,
+CASE WHEN indicator = 'achieved_uig_subdist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
 CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda, 
 CASE WHEN indicator = 'ci_districts_treated_usaid' THEN value_num END AS districts_treated_usaid
 
 FROM reporting_values_country
 WHERE most_recent_submission_f = 1 
 AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 
-'uig_subdist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
+'achieved_uig_subdist_lev_mda_pop', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
 AND reporting_period <> 'work_planning')x
 GROUP BY country, disease, workbook_year
 ORDER BY country, disease, workbook_year;"
@@ -113,14 +113,14 @@ country_desc as 'country', region_desc as 'region', disease, workbook_year, proj
 CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
 CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
 CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
-CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS districts_stop_mda_tra,
-CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
+CASE WHEN indicator = 'achieved_uig_subdist_lev_mda_pop' THEN value_num END AS districts_stop_mda_tra,
+CASE WHEN indicator = 'achieved_uig_subdist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
 CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda, 
 CASE WHEN indicator = 'ci_districts_treated_usaid' THEN value_num END AS districts_treated_usaid
 
 FROM reporting_values_region
 WHERE most_recent_submission_f = 1 
-AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'uig_subdist_lev_mda_pop', 
+AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'achieved_uig_subdist_lev_mda_pop', 
 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
 AND reporting_period <> 'work_planning')x
 GROUP BY country, region, disease, workbook_year
@@ -165,14 +165,14 @@ country_desc as 'country', region_desc as 'region', district_desc as 'district',
 CASE WHEN indicator = 'ppl_treated_all_num' THEN value_num END AS persons_treated_all,
 CASE WHEN indicator = 'ppl_treated_usaid_num' THEN value_num END AS persons_treated_usaid,
 CASE WHEN indicator = 'ci_diseasedist_dist_crit_stop_mda_achiv_num' THEN value_num END AS districts_stop_mda, 
-CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS districts_stop_mda_tra,
-CASE WHEN indicator = 'uig_subdist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
+CASE WHEN indicator = 'achieved_uig_subdist_lev_mda_pop' THEN value_num END AS districts_stop_mda_tra,
+CASE WHEN indicator = 'achieved_uig_subdist_lev_mda_pop' THEN value_num END AS pop_stop_mda_tra,
 CASE WHEN indicator = 'ppl_achieved_crit_stop_mda_num' THEN value_num END AS pop_stop_mda, 
 CASE WHEN indicator = 'ci_districts_treated_usaid' THEN value_num END AS districts_treated_usaid
 
 FROM reporting_values
 WHERE most_recent_submission_f = 1 
-AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'uig_subdist_lev_mda_pop',  
+AND indicator IN ('ppl_treated_all_num', 'ppl_treated_usaid_num', 'achieved_uig_subdist_lev_mda_pop',  
 'ci_diseasedist_dist_crit_stop_mda_achiv_num', 'ppl_achieved_crit_stop_mda_num', 'ci_districts_treated_usaid') 
 AND reporting_period <> 'work_planning')x
 GROUP BY country, region, district, disease, workbook_year;"
