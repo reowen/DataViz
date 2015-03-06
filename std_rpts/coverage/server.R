@@ -35,6 +35,12 @@ shinyServer(function(input, output) {
                 c("USAID portfolio", "Project", "Country", "Region", "District"))}
   })
   
+  output$selectLevel2 <- renderUI({
+    if(!is.null(input$report) & input$report %in% c("prg_3", "epi_3")){
+      selectInput("level", "Select Report Level", 
+                  c("USAID portfolio", "Project", "Country", "Region"))}
+  })
+  
   output$selectProject <- renderUI({
     if(!is.null(input$level) & input$level == "Project"){
       checkboxGroupInput("project", "Choose Project(s):", 
@@ -48,14 +54,6 @@ shinyServer(function(input, output) {
       checkboxGroupInput("country", "Choose Country(ies):", 
                          choices = unique(as.character(country$country)), 
                          selected = "Benin")
-    }
-  })
-  
-  output$selectCountry2 <- renderUI({
-    if(input$report %in% c("prg_3", "prg_5")){
-      selectInput("country", "Choose Country(ies):", 
-                  choices = unique(as.character(country$country)), 
-                  selected = "Benin")
     }
   })
   
@@ -155,8 +153,8 @@ shinyServer(function(input, output) {
     df$colcode <- NA
     df[(!is.na(df$prg_cvg) & df$prg_cvg < 0.6), "colcode"] <- "red"
     df[(!is.na(df$prg_cvg) & df$prg_cvg >= 0.6 & df$prg_cvg < 0.8), "colcode"] <- "yellow"
-    df[(!is.na(df$prg_cvg) & df$prg_cvg >= 0.8 & df$prg_cvg <= 1), "colcode"] <- "green"
-    df[(!is.na(df$prg_cvg) & df$prg_cvg > 1), "colcode"] <- "blue"
+    df[(!is.na(df$prg_cvg) & df$prg_cvg >= 0.8 & df$prg_cvg < 1), "colcode"] <- "green"
+    df[(!is.na(df$prg_cvg) & df$prg_cvg >= 1), "colcode"] <- "blue"
     
     fillPalette <- c("red"="darkred", 
                      "yellow"="yellow", 
@@ -165,7 +163,7 @@ shinyServer(function(input, output) {
     
     ggplot(df, aes(x=prg_cvg, fill=colcode)) + 
       geom_histogram(binwidth=0.2, color="black") + 
-      labs(title = paste("Program Coverage ", input$country, " - ", input$disease, ": ", input$year, sep=""),
+      labs(title = paste("Program Coverage Distribution", " - ", input$disease, ": ", input$year, sep=""),
            x = 'Program Coverage', 
            y = 'Number of Districts') + 
       theme(legend.position="none") + 
@@ -190,9 +188,23 @@ shinyServer(function(input, output) {
       data <- data[with(data, order(disease, workbook_year)), ]
     } else if(input$report == "prg_3"){
       data <- district
-      data <- data[(data$country %in% input$country & 
-                      data$workbook_year %in% input$year & 
-                      data$disease %in% input$disease), ]
+      if(input$level == "USAID portfolio"){
+        data <- data[(data$workbook_year %in% input$year & 
+                        data$disease %in% input$disease), ]
+      } else if(input$level == "Project"){
+        data <- data[(data$project %in% input$project &
+                        data$workbook_year %in% input$year & 
+                        data$disease %in% input$disease), ] 
+      } else if(input$level == "Country"){
+        data <- data[(data$country %in% input$country & 
+                        data$workbook_year %in% input$year & 
+                        data$disease %in% input$disease), ]
+      } else if(input$level == "Region"){
+        data <- data[(data$country %in% input$country & 
+                        data$region %in% input$region &
+                        data$workbook_year %in% input$year & 
+                        data$disease %in% input$disease), ]
+      } 
     } else if(input$report == "prg_4"){
       data <- setLevel()
       data[data$disease == input$disease, ]

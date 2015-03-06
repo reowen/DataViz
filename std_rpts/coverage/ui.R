@@ -22,11 +22,11 @@ shinyUI(
              
              uiOutput("selectReport"), 
              uiOutput("selectLevel"), 
+             uiOutput("selectLevel2"),
              uiOutput("selectProject"), 
              uiOutput("selectDisease"),
-             uiOutput("selectCountry"),
-             uiOutput("selectCountry2"),
              uiOutput("selectYear"),
+             uiOutput("selectCountry"),
              uiOutput("selectRegion"), 
              uiOutput("selectDistrict")
       ),
