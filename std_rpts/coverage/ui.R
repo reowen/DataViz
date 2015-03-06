@@ -25,6 +25,8 @@ shinyUI(
              uiOutput("selectProject"), 
              uiOutput("selectDisease"),
              uiOutput("selectCountry"),
+             uiOutput("selectCountry2"),
+             uiOutput("selectYear"),
              uiOutput("selectRegion"), 
              uiOutput("selectDistrict")
       ),

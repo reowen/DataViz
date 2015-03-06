@@ -13,7 +13,9 @@ shinyServer(function(input, output) {
     if(input$type == "prg"){
       selectInput("report", "Select a Report:", 
                   c("Program Coverage - 1" = "prg_1", 
-                    "Program Coverage - 4" = "prg_4"))
+                    "Program Coverage - 3" = "prg_3",
+                    "Program Coverage - 4" = "prg_4", 
+                    "Program Coverage - 5" = "prg_5"))
     } else if(input$type == "epi"){ 
       selectInput("report", "Select a Report:", 
                   c("Epi Coverage - 1" = "epi_1"))
@@ -42,10 +44,18 @@ shinyServer(function(input, output) {
   })
   
   output$selectCountry <- renderUI({
-    if(!is.null(input$level) & input$level %in% c("Country", "Region", "District")){
+    if((!is.null(input$level) & input$level %in% c("Country", "Region", "District"))){
       checkboxGroupInput("country", "Choose Country(ies):", 
                          choices = unique(as.character(country$country)), 
                          selected = "Benin")
+    }
+  })
+  
+  output$selectCountry2 <- renderUI({
+    if(input$report %in% c("prg_3", "prg_5")){
+      selectInput("country", "Choose Country(ies):", 
+                  choices = unique(as.character(country$country)), 
+                  selected = "Benin")
     }
   })
   
@@ -66,6 +76,13 @@ shinyServer(function(input, output) {
     } else { return(NULL) }  
   })
   
+  output$selectYear <- renderUI({
+    if(input$report %in% c("prg_3")){
+      selectInput("year", "Choose Year:", 
+                  c(seq(2007, max(district$workbook_year), by=1)))
+    }
+  })
+  
   ## Build Main Panel ##############################################################################
   
   output$main <- renderUI({
@@ -74,7 +91,7 @@ shinyServer(function(input, output) {
         downloadButton("exportData", "Download Data"), 
         tableOutput('table')
         )
-    } else if(!is.null(input$report) & input$report %in% c("prg_4", "epi_4")){
+    } else if(!is.null(input$report) & input$report %in% c("prg_3", "prg_4", "epi_4", "prg_5")){
       mainPanel(
         plotOutput('plot'), 
         tableOutput('test')
@@ -96,6 +113,10 @@ shinyServer(function(input, output) {
   output$plot <- renderPlot({
     if(!is.null(input$report) & input$report %in% c("prg_4", "epi_4")){
       cvgPlot()
+    } else if(!is.null(input$report) & input$report %in% c("prg_5")){
+      medPlot()
+    } else if(!is.null(input$report) & input$report %in% c("prg_3")){
+      histPlot()
     }
   })
   
@@ -107,33 +128,59 @@ shinyServer(function(input, output) {
       geom_line() + 
       scale_x_continuous(breaks = seq(min(plotData$workbook_year, na.rm=TRUE), 
                                       max(plotData$workbook_year, na.rm=TRUE))) + 
-      scale_y_continuous(breaks = round(seq(0, max_cvg, by=0.1), 1)) +
-      geom_hline(aes(yintercept=0.8), colour="#990000", linetype="dashed")
-      
-  })
-  
-  
-  output$plotHistory <- renderPlot({
-    data <- countryHistoryData()
-    max_cvg <- max(data[,"median_cvg"], na.rm=TRUE)
-    
-    ggplot(data, aes(x=fiscal_year, y=median_cvg, group=disease, color=disease, shape=disease)) + 
-      geom_line() + 
-      geom_point() + 
-      scale_x_continuous(breaks = seq(min(country$fiscal_year, na.rm=TRUE), 
-                                      max(country$fiscal_year, na.rm=TRUE))) + 
-      scale_y_continuous(breaks = round(seq(0, max_cvg, by=0.1), 1)) +
-      expand_limits(y=0) + 
-      labs(title = paste('Median Program Coverage Over Time:', input$country),
+      scale_y_continuous(breaks = round(seq(0, max_cvg, by=0.1), 1)) + 
+      expand_limits(y=0) +
+      geom_hline(aes(yintercept=0.8), colour="#990000", linetype="dashed") + 
+      labs(title = 'Program Coverage',
            x = 'Fiscal Year', 
-           y = 'Median Program Coverage')
+           y = 'Program Coverage')  
   })
+  
+  medPlot <- reactive({
+    lineData <- setData()
+    
+    ggplot(lineData, aes(x = workbook_year, y = districts_treated, color = 'Districts Treated')) + 
+      geom_bar(stat="identity") + 
+      geom_line(aes(x = workbook_year, y = med_prg_cvg, color = 'Median Program Coverage')) + 
+      scale_x_continuous(breaks = seq(min(lineData$workbook_year, na.rm=TRUE), 
+                                      max(lineData$workbook_year, na.rm=TRUE))) + 
+      scale_y_continuous(breaks = round(seq(0, 100, by=20), 1)) + 
+      labs(title = 'Program Coverage',
+           x = 'Fiscal Year')
+  })
+  
+  histPlot <- reactive({
+    df <- setData()
+    # color code variable
+    df$colcode <- NA
+    df[(!is.na(df$prg_cvg) & df$prg_cvg < 0.6), "colcode"] <- "red"
+    df[(!is.na(df$prg_cvg) & df$prg_cvg >= 0.6 & df$prg_cvg < 0.8), "colcode"] <- "yellow"
+    df[(!is.na(df$prg_cvg) & df$prg_cvg >= 0.8 & df$prg_cvg <= 1), "colcode"] <- "green"
+    df[(!is.na(df$prg_cvg) & df$prg_cvg > 1), "colcode"] <- "blue"
+    
+    fillPalette <- c("red"="darkred", 
+                     "yellow"="yellow", 
+                     "green"="darkgreen", 
+                     "blue"="blue")
+    
+    ggplot(df, aes(x=prg_cvg, fill=colcode)) + 
+      geom_histogram(binwidth=0.2, color="black") + 
+      labs(title = paste("Program Coverage ", input$country, " - ", input$disease, ": ", input$year, sep=""),
+           x = 'Program Coverage', 
+           y = 'Number of Districts') + 
+      theme(legend.position="none") + 
+      scale_x_continuous(breaks = round(seq(0, (max(df[,'prg_cvg'], na.rm=TRUE) + 0.1), by=0.2), 1)) +
+      scale_fill_manual(values=fillPalette) # manually set colors as mapped in fillPalette object
+    
+  })
+  
   
   ## Dataset Functions ################################################################################
   
   setData <- reactive({
     prg_1 <- c("country", "disease", "workbook_year", "districts_treated", "districts_bad_prg_cvg")
     epi_1 <- c("country", "disease", "workbook_year", "districts_treated", "districts_bad_epi_cvg")
+    prg_5 <- c("country", "region", "district", "disease", "workbook_year", "prg_cvg")
     
     if(input$report == "prg_1"){
       data <- country[, prg_1]
@@ -141,9 +188,20 @@ shinyServer(function(input, output) {
     } else if(input$report == "epi_1"){
       data <- country[, epi_1]
       data <- data[with(data, order(disease, workbook_year)), ]
+    } else if(input$report == "prg_3"){
+      data <- district
+      data <- data[(data$country %in% input$country & 
+                      data$workbook_year %in% input$year & 
+                      data$disease %in% input$disease), ]
     } else if(input$report == "prg_4"){
       data <- setLevel()
       data[data$disease == input$disease, ]
+    } else if(input$report == "prg_5"){
+      data <- district[(district$country %in% input$country & district$disease %in% input$disease), prg_5]
+      data$prg_cvg <- (data$prg_cvg * 100)
+      data <- ddply(data, c('country', 'workbook_year', 'disease'), summarize, 
+                    districts_treated = sum(prg_cvg > 0, na.rm=TRUE), 
+                    med_prg_cvg = median(prg_cvg, na.rm=TRUE))
     }
     return(data)
   })
