@@ -103,13 +103,30 @@ shinyServer(function(input, output) {
     plotData <- setData()
     max_cvg <- max(plotData[,"prg_cvg"], na.rm=TRUE)
     
-    ggplot(plotData, aes(x=workbook_year, y=prg_cvg)) + 
+    ggplot(plotData, aes(x=workbook_year, y=prg_cvg, group=group, color=group, shape=group)) + 
       geom_line() + 
       scale_x_continuous(breaks = seq(min(plotData$workbook_year, na.rm=TRUE), 
                                       max(plotData$workbook_year, na.rm=TRUE))) + 
       scale_y_continuous(breaks = round(seq(0, max_cvg, by=0.1), 1)) +
       geom_hline(aes(yintercept=0.8), colour="#990000", linetype="dashed")
       
+  })
+  
+  
+  output$plotHistory <- renderPlot({
+    data <- countryHistoryData()
+    max_cvg <- max(data[,"median_cvg"], na.rm=TRUE)
+    
+    ggplot(data, aes(x=fiscal_year, y=median_cvg, group=disease, color=disease, shape=disease)) + 
+      geom_line() + 
+      geom_point() + 
+      scale_x_continuous(breaks = seq(min(country$fiscal_year, na.rm=TRUE), 
+                                      max(country$fiscal_year, na.rm=TRUE))) + 
+      scale_y_continuous(breaks = round(seq(0, max_cvg, by=0.1), 1)) +
+      expand_limits(y=0) + 
+      labs(title = paste('Median Program Coverage Over Time:', input$country),
+           x = 'Fiscal Year', 
+           y = 'Median Program Coverage')
   })
   
   ## Dataset Functions ################################################################################
@@ -138,18 +155,21 @@ shinyServer(function(input, output) {
                     persons_targeted = sum(persons_targeted),
                     prg_cvg = (sum(persons_treated) / sum(persons_targeted)))
       data <- data[data$disease %in% input$disease, ]
+      data['group'] <- data$disease
     } else if(!is.null(input$level) & input$level == "Project"){
       data <- country[(country$disease %in% input$disease & country$project %in% input$project), ]
       data <- ddply(data, c('project', 'disease', 'workbook_year'), summarize, 
                     persons_treated = sum(persons_treated), 
                     persons_targeted = sum(persons_targeted), 
                     prg_cvg = (sum(persons_treated) / sum(persons_targeted)))
+      data['group'] <- data$project
     } else if(!is.null(input$level) & input$level == "Country"){
       data <- country[(country$disease %in% input$disease & country$country %in% input$country), ]
       data <- ddply(data, c('country', 'disease', 'workbook_year'), summarize, 
                     persons_treated = sum(persons_treated), 
                     persons_targeted = sum(persons_targeted), 
                     prg_cvg = (sum(persons_treated) / sum(persons_targeted)))
+      data['group'] <- data$country
     } else if(!is.null(input$level) & input$level == "Region"){
       data <- district[(district$disease %in% input$disease & 
                           district$country %in% input$country & 
@@ -158,6 +178,7 @@ shinyServer(function(input, output) {
                     persons_treated = sum(persons_treated_usaid), 
                     persons_targeted = sum(persons_targeted_usaid), 
                     prg_cvg = (sum(persons_treated_usaid) / sum(persons_targeted_usaid)))
+      data['group'] <- data$region
     } else if(!is.null(input$level) & input$level == "District"){
       data <- district[(district$disease %in% input$disease & 
                           district$country %in% input$country & 
@@ -167,6 +188,7 @@ shinyServer(function(input, output) {
                     persons_treated = sum(persons_treated_usaid), 
                     persons_targeted = sum(persons_targeted_usaid), 
                     prg_cvg = (sum(persons_treated_usaid) / sum(persons_targeted_usaid)))
+      data['group'] <- data$district
     }
     return(data)
   })
