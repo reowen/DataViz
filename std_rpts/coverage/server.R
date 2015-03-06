@@ -1,5 +1,6 @@
 library(shiny)
 library(plyr)
+library(ggplot2)
 
 district <- read.csv('data/district.csv')
 country <- read.csv('data/country.csv')
@@ -38,6 +39,31 @@ shinyServer(function(input, output) {
                          choices = unique(as.character(country$project)), 
                          selected = "ENVISION")
     }
+  })
+  
+  output$selectCountry <- renderUI({
+    if(!is.null(input$level) & input$level %in% c("Country", "Region", "District")){
+      checkboxGroupInput("country", "Choose Country(ies):", 
+                         choices = unique(as.character(country$country)), 
+                         selected = "Benin")
+    }
+  })
+  
+  output$selectRegion <- renderUI({
+    if((!is.null(input$level) & input$level %in% c("Region", "District")) & !is.null(input$country)){
+      regionList <- unique(as.character(district[district$country %in% input$country, "region"]))
+      checkboxGroupInput("region", "Choose Region(s):", 
+                         choices = regionList)
+    }
+  })
+  
+  output$selectDistrict <- renderUI ({
+    if(input$level == "District" & !is.null(input$country) & !is.null(input$region)){
+      districtList <- unique(as.character(district[district$region %in% input$region & 
+                                                     district$country %in% input$country, "district"]))
+      checkboxGroupInput("district", "Choose District(s):", 
+                         choices = districtList)
+    } else { return(NULL) }  
   })
   
   ## Build Main Panel ##############################################################################
@@ -113,11 +139,34 @@ shinyServer(function(input, output) {
                     prg_cvg = (sum(persons_treated) / sum(persons_targeted)))
       data <- data[data$disease %in% input$disease, ]
     } else if(!is.null(input$level) & input$level == "Project"){
-      data <- ddply(country, c('project', 'disease', 'workbook_year'), summarize, 
+      data <- country[(country$disease %in% input$disease & country$project %in% input$project), ]
+      data <- ddply(data, c('project', 'disease', 'workbook_year'), summarize, 
                     persons_treated = sum(persons_treated), 
                     persons_targeted = sum(persons_targeted), 
                     prg_cvg = (sum(persons_treated) / sum(persons_targeted)))
-      data <- data[(data$disease %in% input$disease & data$project %in% input$project), ]
+    } else if(!is.null(input$level) & input$level == "Country"){
+      data <- country[(country$disease %in% input$disease & country$country %in% input$country), ]
+      data <- ddply(data, c('country', 'disease', 'workbook_year'), summarize, 
+                    persons_treated = sum(persons_treated), 
+                    persons_targeted = sum(persons_targeted), 
+                    prg_cvg = (sum(persons_treated) / sum(persons_targeted)))
+    } else if(!is.null(input$level) & input$level == "Region"){
+      data <- district[(district$disease %in% input$disease & 
+                          district$country %in% input$country & 
+                          district$region %in% input$region), ]
+      data <- ddply(data, c('country', 'region', 'disease', 'workbook_year'), summarize, 
+                    persons_treated = sum(persons_treated_usaid), 
+                    persons_targeted = sum(persons_targeted_usaid), 
+                    prg_cvg = (sum(persons_treated_usaid) / sum(persons_targeted_usaid)))
+    } else if(!is.null(input$level) & input$level == "District"){
+      data <- district[(district$disease %in% input$disease & 
+                          district$country %in% input$country & 
+                          district$region %in% input$region & 
+                          district$district %in% input$district), ]
+      data <- ddply(data, c('country', 'region', 'district', 'disease', 'workbook_year'), summarize, 
+                    persons_treated = sum(persons_treated_usaid), 
+                    persons_targeted = sum(persons_targeted_usaid), 
+                    prg_cvg = (sum(persons_treated_usaid) / sum(persons_targeted_usaid)))
     }
     return(data)
   })
