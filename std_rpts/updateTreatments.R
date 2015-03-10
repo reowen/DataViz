@@ -6,8 +6,8 @@ setwd(script.dir)
 rm(script.dir)
 
 con <- dbConnect(MySQL(), 
-                 user="envision", password="envisionRead!C4eMfw", 
-                 dbname="ntd", host="productionread.c6u52zchwjde.us-east-1.rds.amazonaws.com")
+                 user="", password="", 
+                 dbname="", host="")
 
 query <- 
   "SELECT country, disease, workbook_year, 
