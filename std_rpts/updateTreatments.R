@@ -82,5 +82,7 @@ dbClearResult(rs)
 dbDisconnect(con)
 rm(con, check, rs)
 
+
 write.csv(data, 'treatments\\data\\data.csv')
+rm(data)
 
